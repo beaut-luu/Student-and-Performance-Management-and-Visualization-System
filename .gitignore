@@ -1,0 +1,36 @@
+# Python 虚拟环境与字节码缓存
+.venv/
+venv/
+env/
+__pycache__/
+*.py[cod]
+*$py.class
+
+# 构建产物
+build/
+dist/
+*.egg-info/
+
+# 测试与质量工具缓存
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+
+# 密钥与环境配置：禁止提交，仅提交 .env.example 模板
+.env
+.env.*
+!.env.example
+logs/
+
+# 数据库与临时文件
+*.db
+*.sqlite3
+*.log
+Thumbs.db
+.DS_Store
+
+# IDE 本地配置
+.idea/
+.vscode/
