@@ -34,3 +34,5 @@ Thumbs.db
 # IDE 本地配置
 .idea/
 .vscode/
+test.py
+test.sql

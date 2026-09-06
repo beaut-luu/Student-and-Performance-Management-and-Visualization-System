@@ -22,6 +22,7 @@ class User(Base):
         nullable=False
     )
     jurisdiction: Mapped[int] = mapped_column(
+        TINYINT(1),
         default=Jurisdiction.USER.value,
         nullable=False
     )
