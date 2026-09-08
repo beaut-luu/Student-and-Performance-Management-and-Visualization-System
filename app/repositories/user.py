@@ -34,3 +34,13 @@ class UserRepository(BaseRepository[User]):
 
     async def update_username(self, username: str, newname: str) -> bool:
         return await self.update_model(username, username=newname)
+
+    async def insert_user(self, username: str, pwd_hash: str) -> bool:
+        user_dict = {'username': username, 'pwd_hash': pwd_hash}
+        user = User(**user_dict)
+        await self.insert_into(user)
+        res = await self.select_one_by_username(username)
+        if res is not None:
+            return True
+        return False
+

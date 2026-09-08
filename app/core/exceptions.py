@@ -10,6 +10,11 @@ class InvalidCredentialsError(BizException):  # 登录失败 → 401
         super().__init__(msg, status_code=401)
 
 
+class UserNotLogInError(BizException):  # 未登录 401
+    def __init__(self, msg='未登录'):
+        super().__init__(msg, status_code=401)
+
+
 class UsernameDuplicatedError(BizException):  # 注册重名 → 409
     def __init__(self, msg='注册重名'):
         super().__init__(msg, status_code=409)
@@ -28,3 +33,8 @@ class PermissionDeniedError(BizException):  # 权限不足 → 403
 class OldPasswordError(BizException):   # 原密码错 → 400
     def __init__(self, msg='原密码错误'):
         super().__init__(msg, status_code=400)
+
+
+class SameOldNewPasswordError(BizException):
+    def __init__(self, msg='新密码不能与原密码相同'):
+        super().__init__(msg, status_code=409)

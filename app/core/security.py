@@ -16,7 +16,7 @@ def verify_hash(pwd: str, hashed_pwd: str) -> bool:
     return bcrypt.checkpw(new_pwd_bytes, hashed_pwd.encode('utf-8'))
 
 
-def create_access_token(username: str, jurisdiction: int, expires: int = None) -> str:
+def create_access_token(username: str, jurisdiction: int, expires: int = settings.ACCESS_TOKEN_EXPIRE_MINUTES) -> str:
     payload = {
         "sub": username,
         "jurisdiction": jurisdiction,
