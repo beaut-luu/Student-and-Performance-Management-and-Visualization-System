@@ -1,6 +1,4 @@
 # 验旧密改密 / 改名 / 改权限(含 ADMIN_SECRET 校验)
-from fastapi import Depends
-from app.core.deps import get_current_user, d_urepo
 from app.core.exceptions import OldPasswordError, SameOldNewPasswordError, UsernameDuplicatedError, \
     PermissionDeniedError, UserNotFoundError
 from app.core.security import verify_hash, trans_hash
@@ -14,8 +12,8 @@ from app.models.enums import Jurisdiction
 
 async def change_pwd(old_pwd: str,
                      new_pwd: str,
-                     user: User = Depends(get_current_user),
-                     urepo: UserRepository = Depends(d_urepo)) -> bool:
+                     user: User,
+                     urepo: UserRepository) -> bool:
     if not verify_hash(old_pwd, user.pwd_hash):
         raise OldPasswordError('原密码错误')
 
@@ -26,9 +24,9 @@ async def change_pwd(old_pwd: str,
 
 
 async def change_username(new_name: str,
-                          urepo: UserRepository = Depends(d_urepo),
-                          user: User = Depends(get_current_user)) -> bool:
-    if await duplicate_checking(new_name):
+                          urepo: UserRepository,
+                          user: User) -> bool:
+    if await duplicate_checking(new_name, urepo):
         raise UsernameDuplicatedError('该用户名已存在')
 
     return await urepo.update_username(user.username, new_name)
@@ -37,11 +35,11 @@ async def change_username(new_name: str,
 async def change_jurisdiction(new_jur: int,
                               target_username: str,
                               admin_secret: Optional[str],
-                              user: User = Depends(get_current_user),
-                              urepo: UserRepository = Depends(d_urepo)) -> bool:
+                              user: User,
+                              urepo: UserRepository) -> bool:
     if user.jurisdiction != Jurisdiction.ADMIN:
         if admin_secret != settings.ADMIN_SECRET:
             raise PermissionDeniedError('安全密钥错误,权限不足')
-    if not await duplicate_checking(target_username):
+    if not await duplicate_checking(target_username, urepo):
         raise UserNotFoundError('该用户不存在')
     return await urepo.update_jurisdiction(target_username, new_jur)

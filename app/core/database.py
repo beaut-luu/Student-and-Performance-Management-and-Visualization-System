@@ -1,6 +1,8 @@
 # async engine + async_sessionmaker + get_db() 依赖（替代手写连接池）
 from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker, AsyncSession
 from app.core.config import settings
+from app.models.base import Base
+from app.models import user  # noqa: F401
 
 
 # 创建mysql连接链接
@@ -13,6 +15,12 @@ async_engine = create_async_engine(
     pool_size=5,
     max_overflow=5
 )
+
+
+async def create_table():
+    """Base.metadata里面装有所有Base的子类的信息"""
+    async with async_engine.begin() as conn:
+        await conn.run_sync(Base.metadata.create_all)
 
 
 AsyncSessionLocal = async_sessionmaker(

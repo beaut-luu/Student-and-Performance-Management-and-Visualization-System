@@ -10,7 +10,7 @@ class RegisterIn(BaseModel):
 
 class LoginIn(BaseModel):
     username: str = Field(..., min_length=1, max_length=64, description='用户名')
-    password: str = Field(..., min_length=1, description='密码')
+    password: str = Field(..., min_length=6, description='密码')
 
 
 class TokenOut(BaseModel):

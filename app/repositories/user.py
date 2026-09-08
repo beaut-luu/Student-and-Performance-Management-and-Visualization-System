@@ -19,8 +19,8 @@ class UserRepository(BaseRepository[User]):
             return True
         return False
 
-    async def update_model(self, username: str, **values) -> bool:
-        res = await self.select_one_by_username(username)
+    async def update_model(self, old_username: str, **values) -> bool:
+        res = await self.select_one_by_username(old_username)
         if res is not None:
             await self.update_one(res.id, **values)
             return True

@@ -1,8 +1,9 @@
 # BizException 体系(迁移 exception.py) + 各 HTTP 异常 handler
 class BizException(Exception):
     def __init__(self, msg: str, status_code: int = 400):
-        super().__init__(msg)
+        self.msg = msg
         self.status_code = status_code
+        super().__init__(msg)
 
 
 class InvalidCredentialsError(BizException):  # 登录失败 → 401
