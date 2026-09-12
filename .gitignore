@@ -22,7 +22,11 @@ htmlcov/
 .env
 .env.*
 !.env.example
+*.local
 logs/
+
+# 前端依赖与构建（子目录已有独立 .gitignore，此处兜底）
+node_modules/
 
 # 数据库与临时文件
 *.db
