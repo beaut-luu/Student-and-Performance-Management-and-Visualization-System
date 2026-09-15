@@ -26,4 +26,5 @@ class ChangeNameIn(BaseModel):
 class ChangeJurIn(BaseModel):
     target_username: str = Field(..., min_length=1, max_length=64, description='你想为谁修改权限')
     jur: int = Field(..., ge=0, le=1, description='权限码只能为0或1')
+    # TODO 去除admin密钥
     admin_secret: Optional[str] = Field(default=None, description='非管理员操作时填写')

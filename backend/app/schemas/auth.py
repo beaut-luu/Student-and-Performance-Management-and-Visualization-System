@@ -1,11 +1,14 @@
 # RegisterIn / LoginIn / TokenOut
 # 注册登录用户输入字段校验
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, EmailStr
 
 
 class RegisterIn(BaseModel):
-    username: str = Field(..., min_length=1, max_length=64, description='用户名最少一个字符')
+    username: str = Field(..., min_length=1, max_length=64, description='昵称最少一个字符')
+    name: str = Field(..., min_length=1, max_length=25, description='请输入真实姓名,仅用于验证身份')
     password: str = Field(..., min_length=6, max_length=128, description='密码最少6位')
+    stu_number: str = Field(..., min_length=12, max_length=12, description='请输入12位学号,仅用于验证身份')
+    email: EmailStr | None = Field(default=None, description="请输入正确的邮箱")
 
 
 class LoginIn(BaseModel):

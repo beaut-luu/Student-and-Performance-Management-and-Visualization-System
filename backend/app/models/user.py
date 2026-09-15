@@ -18,12 +18,25 @@ class User(Base):
         unique=True,
         nullable=False
     )
+    name: Mapped[str] = mapped_column(
+        String[25],
+        nullable=False
+    )
+    stu_number: Mapped[int] = mapped_column(
+        String(12),
+        unique=True,
+        nullable=False
+    )
+    email: Mapped[str] = mapped_column(
+        String[256],
+        unique=True
+    )
     pwd_hash: Mapped[str] = mapped_column(
         String(256),
         nullable=False
     )
-    jurisdiction: Mapped[int] = mapped_column(
+    jurisdiction: Mapped[Jurisdiction] = mapped_column(
         TINYINT(1),
-        default=Jurisdiction.USER.value,
+        default=Jurisdiction.user,
         nullable=False
     )

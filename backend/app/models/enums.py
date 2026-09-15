@@ -3,5 +3,19 @@ from enum import IntEnum
 
 
 class Jurisdiction(IntEnum):
-    ADMIN = 1
-    USER = 0
+    ADMIN = 0
+    user = 1
+    student = 2
+    ORG = 3
+
+
+class OrganizationRole(IntEnum):
+    owner = 0
+    manager = 1
+    member = 2
+
+
+class GroupRole(IntEnum):
+    owner = 0
+    admin = 1
+    member = 2
