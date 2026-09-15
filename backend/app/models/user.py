@@ -7,7 +7,7 @@ from sqlalchemy.orm import Mapped, mapped_column
 
 
 class User(Base):
-    __tablename__ = "db_user"
+    __tablename__ = "user"
 
     id: Mapped[int] = mapped_column(
         primary_key=True,
@@ -19,7 +19,7 @@ class User(Base):
         nullable=False
     )
     name: Mapped[str] = mapped_column(
-        String[25],
+        String(25),
         nullable=False
     )
     stu_number: Mapped[int] = mapped_column(
@@ -28,7 +28,7 @@ class User(Base):
         nullable=False
     )
     email: Mapped[str] = mapped_column(
-        String[256],
+        String(256),
         unique=True
     )
     pwd_hash: Mapped[str] = mapped_column(

@@ -8,7 +8,7 @@ class RegisterIn(BaseModel):
     name: str = Field(..., min_length=1, max_length=25, description='请输入真实姓名,仅用于验证身份')
     password: str = Field(..., min_length=6, max_length=128, description='密码最少6位')
     stu_number: str = Field(..., min_length=12, max_length=12, description='请输入12位学号,仅用于验证身份')
-    email: EmailStr | None = Field(default=None, description="请输入正确的邮箱")
+    email: EmailStr = Field(default=None, description="请输入正确的邮箱")
 
 
 class LoginIn(BaseModel):

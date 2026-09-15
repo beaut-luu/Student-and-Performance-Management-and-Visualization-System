@@ -17,7 +17,8 @@ router = APIRouter(prefix='/auth', tags=['认证'])
 @router.post('/register', response_model=SuccessResponse, summary='注册')
 async def register(body: RegisterIn,
                    urepo: UserRepository = Depends(d_urepo)):
-    if not await auth.register(body.username, body.password, urepo):
+    if not await auth.register(body.username, body.password,
+                               body.email, body.stu_number, body.name, urepo):
         raise BizException('注册失败')
     return SuccessResponse(message='注册成功')
 

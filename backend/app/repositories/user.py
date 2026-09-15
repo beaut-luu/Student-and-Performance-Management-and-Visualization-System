@@ -12,6 +12,12 @@ class UserRepository(BaseRepository[User]):
     async def select_one_by_username(self, username: str) -> Optional[User]:
         return await self.select_one(User.username == username)
 
+    async def select_one_by_email(self, email: str) -> Optional[User]:
+        return await self.select_one(User.email == email)
+
+    async def select_one_by_stu_num(self, stu_num: str) -> Optional[User]:
+        return await self.select_one(User.stu_number == stu_num)
+
     async def delete_by_username(self, username: str) -> bool:
         res = await self.select_one_by_username(username)
         if res is not None:
@@ -35,8 +41,9 @@ class UserRepository(BaseRepository[User]):
     async def update_username(self, username: str, newname: str) -> bool:
         return await self.update_model(username, username=newname)
 
-    async def insert_user(self, username: str, pwd_hash: str) -> bool:
-        user_dict = {'username': username, 'pwd_hash': pwd_hash}
+    async def insert_user(self, username: str, pwd_hash: str,
+                          email: str, stu_number: str, name) -> bool:
+        user_dict = {'username': username, 'pwd_hash': pwd_hash, 'email': email, 'stu_number': stu_number, 'name': name}
         user = User(**user_dict)
         await self.insert_into(user)
         res = await self.select_one_by_username(username)

@@ -5,11 +5,18 @@ from app.core.exceptions import UsernameDuplicatedError, InvalidCredentialsError
 from app.core.security import trans_hash, verify_hash, create_access_token
 
 
-async def register(username: str, password: str, urepo: UserRepository) -> bool:
-    if await duplicate_checking(username, urepo):
-        raise UsernameDuplicatedError('用户名重复')
+async def register(username: str, password: str,
+                   email: str | None, stu_number: str,
+                   name: str,
+                   urepo: UserRepository) -> bool:
+    if await duplicate_checking_username(username, urepo):
+        raise UsernameDuplicatedError('该用户名已被使用')
+    elif await duplicate_checking_email(email, urepo):
+        raise UsernameDuplicatedError('该邮箱已被使用')
+    elif await duplicate_checking_stu_num(stu_number, urepo):
+        raise UsernameDuplicatedError('该学号已注册')
     pwd_hash = trans_hash(password)
-    if await urepo.insert_user(username, pwd_hash):
+    if await urepo.insert_user(username, pwd_hash, email, stu_number, name):
         return True
     return False
 
@@ -22,8 +29,24 @@ async def login(username: str, password: str, urepo: UserRepository) -> str:
     return token
 
 
-async def duplicate_checking(username: str, urepo: UserRepository) -> bool:
+async def duplicate_checking_username(username: str, urepo: UserRepository) -> bool:
     res = await urepo.select_one_by_username(username)
+    if res is not None:
+        return True
+    return False
+
+
+async def duplicate_checking_email(email: str | None, urepo: UserRepository) -> bool:
+    if email is None:
+        pass
+    res = await urepo.select_one_by_email(email)
+    if res is not None:
+        return True
+    return False
+
+
+async def duplicate_checking_stu_num(stu_num: str, urepo: UserRepository) -> bool:
+    res = await urepo.select_one_by_stu_num(stu_num)
     if res is not None:
         return True
     return False
