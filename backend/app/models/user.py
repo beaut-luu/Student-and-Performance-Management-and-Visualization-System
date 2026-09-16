@@ -27,9 +27,10 @@ class User(Base):
         unique=True,
         nullable=False
     )
-    email: Mapped[str] = mapped_column(
+    email: Mapped[str | None] = mapped_column(
         String(256),
-        unique=True
+        unique=True,
+        nullable=True
     )
     pwd_hash: Mapped[str] = mapped_column(
         String(256),
