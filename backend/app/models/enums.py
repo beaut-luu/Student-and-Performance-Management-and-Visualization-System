@@ -1,35 +1,60 @@
 # Jurisdiction(权限枚举,迁移自 state.py;JWT 方案下舍弃 State)
-from enum import IntEnum, Enum
+from enum import Enum
 
 
-class Jurisdiction(IntEnum):
-    ADMIN = 0
-    user = 1
-    student = 2
-    ORG = 3
+class Jurisdiction(Enum):
+    admin = 'admin'
+    user = 'user'
+    student = 'student'
+    org = 'org'
 
 
-class OrganizationRole(IntEnum):
-    owner = 0
-    manager = 1
-    member = 2
+class OrganizationRole(Enum):
+    owner = 'owner'
+    manager = 'manager'
+    member = 'member'
 
 
-class GroupRole(IntEnum):
-    owner = 0
-    admin = 1
-    member = 2
+class GroupRole(Enum):
+    owner = 'owner'
+    admin = 'admin'
+    member = 'member'
 
 
 class ActivityStatus(Enum):
-    draft: 'draft'  # 草稿
-    published: 'published'  # 公示期
-    cancelled: 'cancelled'  # 已取消
-    finished: 'finished'  # 已完成
+    draft = 'draft'  # 草稿
+    published = 'published'  # 公示期
+    cancelled = 'cancelled'  # 已取消
+    finished = 'finished'  # 已完成
 
 
 class ActivityRegistrationStatus(Enum):
-    approved: 'approved'  # 被录用
-    cancelled: 'cancelled'  # 已取消
-    rejected: 'rejected'  # 被驳回
-    check_in: 'check_in'  # 审核阶段
+    approved = 'approved'  # 被录用
+    cancelled = 'cancelled'  # 已取消
+    rejected = 'rejected'  # 被驳回
+    check_in = 'check_in'  # 审核阶段
+
+
+class GroupJoinMode(Enum):
+    public = 'public'  # 自由加入
+    approval = 'approval'  # 需审核
+    private = 'private'  # 邀请制
+
+
+class GroupStatus(Enum):
+    normal = 'normal'  # 正常
+    muted = 'muted'  # 全员禁言
+    dissolved = 'dissolved'  # 已解散
+
+
+class ChatMessageType(Enum):
+    text = 'text'  # 文本
+    image = 'image'  # 图片
+    file = 'file'  # 文件
+    system = 'system'  # 系统消息
+    recalled = 'recalled'  # 已撤回
+
+
+class ChatMessageStatus(Enum):
+    normal = 'normal'  # 正常
+    recalled = 'recalled'  # 已撤回

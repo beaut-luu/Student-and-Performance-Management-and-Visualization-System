@@ -11,7 +11,7 @@ class UserOut(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
     username: str
-    jurisdiction: int = Field(description="1=管理员,0=用户")
+    jurisdiction: str = Field(..., description='权限')
 
 
 class ChangePwdIn(BaseModel):
@@ -25,6 +25,6 @@ class ChangeNameIn(BaseModel):
 
 class ChangeJurIn(BaseModel):
     target_username: str = Field(..., min_length=1, max_length=64, description='你想为谁修改权限')
-    jur: int = Field(..., ge=0, le=1, description='权限码只能为0或1')
+    jur: str = Field(..., description='权限')
     # TODO 去除admin密钥
     admin_secret: Optional[str] = Field(default=None, description='非管理员操作时填写')

@@ -35,7 +35,7 @@ class UserRepository(BaseRepository[User]):
     async def update_pwdhash(self, username: str, newpwdhash: str) -> bool:
         return await self.update_model(username, pwd_hash=newpwdhash)
 
-    async def update_jurisdiction(self, username: str, jur: int) -> bool:
+    async def update_jurisdiction(self, username: str, jur: str) -> bool:
         return await self.update_model(username, jurisdiction=jur)
 
     async def update_username(self, username: str, newname: str) -> bool:

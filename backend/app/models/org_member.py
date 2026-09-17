@@ -1,5 +1,5 @@
 from sqlalchemy.orm import Mapped, mapped_column
-from sqlalchemy import String, UniqueConstraint
+from sqlalchemy import String, UniqueConstraint, Enum
 from app.models.base import Base
 from app.models.enums import OrganizationRole
 
@@ -19,6 +19,7 @@ class OrgMember(Base):
         index=True
     )
     role: Mapped[OrganizationRole] = mapped_column(
+        Enum(OrganizationRole),
         default=OrganizationRole.member
     )
     __table_args__ = (

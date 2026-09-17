@@ -1,6 +1,5 @@
 # User 模型：映射 db_user 表
-from sqlalchemy import String
-from sqlalchemy.dialects.mysql import TINYINT
+from sqlalchemy import String, Enum
 from app.models.enums import Jurisdiction
 from app.models.base import Base
 from sqlalchemy.orm import Mapped, mapped_column
@@ -37,7 +36,7 @@ class User(Base):
         nullable=False
     )
     jurisdiction: Mapped[Jurisdiction] = mapped_column(
-        TINYINT(1),
+        Enum(Jurisdiction),
         default=Jurisdiction.user,
         nullable=False
     )

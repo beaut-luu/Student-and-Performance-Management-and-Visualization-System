@@ -2,7 +2,7 @@
 from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker, AsyncSession
 from app.core.config import settings
 from app.models.base import Base
-from app.models import user  # noqa: F401
+import app.models  # noqa: F401
 
 
 # 创建mysql连接链接

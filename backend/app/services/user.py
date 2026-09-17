@@ -32,12 +32,12 @@ async def change_username(new_name: str,
     return await urepo.update_username(user.username, new_name)
 
 
-async def change_jurisdiction(new_jur: int,
+async def change_jurisdiction(new_jur: str,
                               target_username: str,
                               admin_secret: Optional[str],
                               user: User,
                               urepo: UserRepository) -> bool:
-    if user.jurisdiction != Jurisdiction.ADMIN:
+    if user.jurisdiction != Jurisdiction.admin:
         if admin_secret != settings.ADMIN_SECRET:
             raise PermissionDeniedError('安全密钥错误,权限不足')
     if not await duplicate_checking_username(target_username, urepo):

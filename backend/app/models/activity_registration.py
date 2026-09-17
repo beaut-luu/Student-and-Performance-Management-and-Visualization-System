@@ -50,7 +50,7 @@ class ActivityRegistration(Base):
     )
 
     __table_args__ = (
-        UniqueConstraint('activity_id', 'register_stu_num', name='uq_act_register')
+        UniqueConstraint('activity_id', 'register_stu_num', name='uq_act_register'),
     )
 
 

@@ -1,0 +1,4 @@
+9/16: 前端email输入为空时实际传回来的是空字符串''，所以''会被EmailStr直接校验，产生错误。
+修复方法:增加一个前置校验器，若为''则返回None即可
+引发的新错误:insert时，数据库报错:email can not be null，原因:在rom构建表的时候Mapped[str]
+修复方式:允许传入None,Mapped[str | None]
