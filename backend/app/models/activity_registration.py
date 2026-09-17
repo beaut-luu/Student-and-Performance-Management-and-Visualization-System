@@ -1,5 +1,5 @@
 from sqlalchemy.orm import Mapped, mapped_column
-from sqlalchemy import String, Enum, JSON, DateTime, Boolean, UniqueConstraint
+from sqlalchemy import String, Enum, JSON, DateTime, UniqueConstraint, func
 from app.models.base import Base
 from app.models.enums import ActivityRegistrationStatus
 from datetime import datetime
@@ -22,7 +22,8 @@ class ActivityRegistration(Base):
     )
     status: Mapped[ActivityRegistrationStatus] = mapped_column(
         Enum(ActivityRegistrationStatus),
-        nullable=False
+        nullable=False,
+        default=ActivityRegistrationStatus.pending
     )
     register_data: Mapped[dict] = mapped_column(
         JSON(),
@@ -42,11 +43,8 @@ class ActivityRegistration(Base):
     )
     checkin_time: Mapped[datetime | None] = mapped_column(
         DateTime(),
-        nullable=True
-    )
-    checkin_status: Mapped[bool | None] = mapped_column(
-        Boolean(),
-        nullable=True
+        nullable=True,
+        default=func.now()
     )
 
     __table_args__ = (

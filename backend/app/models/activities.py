@@ -74,7 +74,7 @@ class Activity(Base):
     # 报名表(JSON)
     fields: Mapped[dict | None] = mapped_column(  # 报名表自定义模板
         JSON(),
-        nullable=True
+        nullable=False
     )
 
     checkin: Mapped[bool] = mapped_column(  # 是否开启签到
@@ -84,7 +84,8 @@ class Activity(Base):
 
     status: Mapped[ActivityStatus] = mapped_column(  # 活动状态
         Enum(ActivityStatus),
-        nullable=False
+        nullable=False,
+        default=ActivityStatus.published
     )
 
     view_count: Mapped[int] = mapped_column(  # 浏览量

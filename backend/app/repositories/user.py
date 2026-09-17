@@ -45,7 +45,8 @@ class UserRepository(BaseRepository[User]):
         return await self.update_model(username, email=email)
 
     async def insert_user(self, username: str, pwd_hash: str,
-                          email: str | None, stu_number: str, name) -> bool:
+                          email: str | None, stu_number: str,
+                          name: str) -> bool:
         user_dict = {'username': username, 'pwd_hash': pwd_hash, 'email': email, 'stu_number': stu_number, 'name': name}
         user = User(**user_dict)
         await self.insert_into(user)

@@ -20,7 +20,8 @@ class OrgMember(Base):
     )
     role: Mapped[OrganizationRole] = mapped_column(
         Enum(OrganizationRole),
-        default=OrganizationRole.member
+        default=OrganizationRole.member,
+        nullable=False
     )
     __table_args__ = (
         UniqueConstraint("org_id", "member_stu_num", name='uq_org_member'),

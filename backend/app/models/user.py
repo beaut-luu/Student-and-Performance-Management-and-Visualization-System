@@ -21,7 +21,7 @@ class User(Base):
         String(25),
         nullable=False
     )
-    stu_number: Mapped[int] = mapped_column(
+    stu_number: Mapped[str] = mapped_column(
         String(12),
         unique=True,
         nullable=False

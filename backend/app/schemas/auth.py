@@ -5,7 +5,7 @@ from typing import Annotated
 
 
 def empty_str_to_none(val: str):
-    if val == '':
+    if val.strip() == '':
         return None
     return val
 

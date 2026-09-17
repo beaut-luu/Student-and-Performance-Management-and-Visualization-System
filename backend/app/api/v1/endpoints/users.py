@@ -42,6 +42,6 @@ async def change_pwd(body: sch_user.ChangePwdIn,
 async def change_jur(body: sch_user.ChangeJurIn,
                      urepo: UserRepository = Depends(d_urepo),
                      user: User = Depends(get_current_user)):
-    if await ser_user.change_jurisdiction(body.jur, body.target_username, body.admin_secret, user, urepo):
+    if await ser_user.change_jurisdiction(body.jur, body.target_username, user, urepo):
         return SuccessResponse(message='权限修改成功')
     raise BizException('权限修改失败')

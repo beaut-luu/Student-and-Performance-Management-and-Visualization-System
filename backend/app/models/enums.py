@@ -32,7 +32,8 @@ class ActivityRegistrationStatus(Enum):
     approved = 'approved'  # 被录用
     cancelled = 'cancelled'  # 已取消
     rejected = 'rejected'  # 被驳回
-    check_in = 'check_in'  # 审核阶段
+    check_in = 'check_in'  # 已签到
+    pending = 'pending'  # 待审核
 
 
 class GroupJoinMode(Enum):

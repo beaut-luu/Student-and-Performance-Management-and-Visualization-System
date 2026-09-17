@@ -2,7 +2,7 @@ from app.models import (
     user,
     organization,
     org_member,
-    charts,
+    chatgroup,
     chat_member,
     chat_message,
     activities,

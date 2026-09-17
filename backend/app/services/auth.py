@@ -25,7 +25,7 @@ async def login(username: str, password: str, urepo: UserRepository) -> str:
     user = await urepo.select_one_by_username(username)
     if user is None or not verify_hash(password, user.pwd_hash):
         raise InvalidCredentialsError('用户名不存在或密码错误')
-    token = create_access_token(user.username, user.jurisdiction)
+    token = create_access_token(user.username, user.jurisdiction.value)
     return token
 
 
@@ -38,7 +38,7 @@ async def duplicate_checking_username(username: str, urepo: UserRepository) -> b
 
 async def duplicate_checking_email(email: str | None, urepo: UserRepository) -> bool:
     if email is None:
-        pass
+        return False
     res = await urepo.select_one_by_email(email)
     if res is not None:
         return True

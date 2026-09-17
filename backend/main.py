@@ -7,12 +7,14 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from app.core.exceptions import BizException
 from app.api.v1.router import api_router
+from app.models.dataseed import data_seed_init
 
 
 @asynccontextmanager
 async def lifespan(_app: FastAPI):
     init_logger()
     await create_table()
+    await data_seed_init()
     yield
     shutdown()
 

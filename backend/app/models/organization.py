@@ -10,17 +10,15 @@ class Organization(Base):
         autoincrement=True
     )
     name: Mapped[str] = mapped_column(
-        String(10),
+        String(50),
         nullable=False,
         unique=True
     )
     logo: Mapped[str] = mapped_column(  # logo的url
-        String(256),
-        unique=True
+        String(256)
     )
     description: Mapped[str] = mapped_column(
         String(400),
-        unique=True,
         nullable=False
     )
     contact: Mapped[str] = mapped_column(  # 社团联系方式
@@ -29,6 +27,5 @@ class Organization(Base):
     )
     owner_stu_number: Mapped[str] = mapped_column(
         String(12),
-        unique=True,
         nullable=False
     )

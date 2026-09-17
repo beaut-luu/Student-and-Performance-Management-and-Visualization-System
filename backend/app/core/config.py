@@ -11,7 +11,6 @@ class Settings(BaseSettings):
     DB_PASSWORD: str
     DB_NAME: str
     # JWT配置与管理员密钥
-    ADMIN_SECRET: str
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 60 * 24  # 访问令牌过期时间（分钟）
     SECRET_KEY: str  # 签名密钥
     ALGORITHM: str
