@@ -11,7 +11,7 @@ ASYNC_DATABASE_URL = settings.database_url
 # 创建异步引擎
 async_engine = create_async_engine(
     ASYNC_DATABASE_URL,
-    echo=True,
+    echo=False,
     pool_size=5,
     max_overflow=5
 )

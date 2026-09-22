@@ -1,8 +1,15 @@
-from sqlalchemy.orm import Mapped, mapped_column
-from sqlalchemy import String, Text, Enum, DateTime, BigInteger, UniqueConstraint, Index, desc, func
+from sqlalchemy.orm import Mapped, mapped_column, relationship
+from sqlalchemy import (String, Text, Enum, DateTime, BigInteger, UniqueConstraint,
+                        Index, desc, func, Boolean, ForeignKey)
 from datetime import datetime
 from app.models.base import Base
 from app.models.enums import ChatMessageType, ChatMessageStatus
+from typing import TYPE_CHECKING
+
+
+if TYPE_CHECKING:
+    from app.models.chatgroup import ChatGroup
+    from app.models.user import User
 
 
 class ChatMessage(Base):
@@ -14,11 +21,17 @@ class ChatMessage(Base):
         autoincrement=True
     )
     group_id: Mapped[int] = mapped_column(  # 群id
+        ForeignKey("chat_group.id"),
         nullable=False
     )
+    group: Mapped["ChatGroup"] = relationship(foreign_keys=[group_id],
+                                              back_populates="message")  # type: ignore
     sender_id: Mapped[int] = mapped_column(  # 发送者user.id
+        ForeignKey("user.id"),
         nullable=False
     )
+    sender: Mapped["User"] = relationship(foreign_keys=[sender_id],
+                                          back_populates="chat_message")  # type: ignore
     type: Mapped[ChatMessageType] = mapped_column(  # 消息类型
         Enum(ChatMessageType),
         nullable=False,
@@ -30,8 +43,14 @@ class ChatMessage(Base):
     )
     reply_to_msg_id: Mapped[int | None] = mapped_column(  # 引用回复的消息id
         BigInteger(),
+        ForeignKey("chat_message.id"),
         nullable=True
     )
+    reply_to: Mapped["ChatMessage | None"] = relationship(foreign_keys=[reply_to_msg_id],
+                                                          remote_side=[id],
+                                                          back_populates="replies")
+    replies: Mapped[list["ChatMessage"]] = relationship(foreign_keys=[reply_to_msg_id],
+                                                        back_populates="reply_to")
     client_msg_id: Mapped[str] = mapped_column(  # 前端生成,幂等去重
         String(64),
         nullable=False
@@ -45,6 +64,11 @@ class ChatMessage(Base):
         DateTime(),
         nullable=False,
         default=func.now()
+    )
+    is_delete: Mapped[bool] = mapped_column(
+        Boolean(),
+        nullable=False,
+        default=False
     )
 
     __table_args__ = (

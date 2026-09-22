@@ -1,8 +1,16 @@
-from sqlalchemy.orm import Mapped, mapped_column
-from sqlalchemy import String, Enum, JSON, DateTime, Index
+from sqlalchemy.orm import Mapped, mapped_column, relationship
+from sqlalchemy import String, Enum, JSON, DateTime, Index, Boolean, ForeignKey
 from datetime import datetime
 from app.models.base import Base
 from app.models.enums import GroupJoinMode, GroupStatus
+from typing import TYPE_CHECKING
+
+
+if TYPE_CHECKING:
+    from app.models.user import User
+    from app.models.chat_member import ChatGroupMember
+    from app.models.chat_message import ChatMessage
+
 
 DEFAULT_MAX_MEMBERS = 200
 
@@ -32,8 +40,11 @@ class ChatGroup(Base):
         index=True
     )
     owner_id: Mapped[int] = mapped_column(  # 群主user.id
+        ForeignKey("user.id"),
         nullable=False
     )
+    owner: Mapped["User"] = relationship(foreign_keys=[owner_id],
+                                         back_populates="chat_owner")  # type: ignore
     tags: Mapped[list | None] = mapped_column(  # 标签
         JSON(),
         nullable=True
@@ -69,8 +80,17 @@ class ChatGroup(Base):
         DateTime(),
         nullable=True
     )
+    is_delete: Mapped[bool] = mapped_column(
+        Boolean(),
+        nullable=False,
+        default=False
+    )
 
     __table_args__ = (
         Index('idx_chat_group_owner_status', 'owner_id', 'status'),
         Index('idx_chat_group_cleanup', 'status', 'last_active_time')
     )
+    member: Mapped[list["ChatGroupMember"]] = relationship(foreign_keys="[ChatGroupMember.group_id]",
+                                                           back_populates="group")
+    message: Mapped[list["ChatMessage"]] = relationship(foreign_keys="[ChatMessage.group_id]",
+                                                        back_populates="group")

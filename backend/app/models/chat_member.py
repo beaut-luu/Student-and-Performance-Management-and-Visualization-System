@@ -1,8 +1,14 @@
-from sqlalchemy.orm import Mapped, mapped_column
-from sqlalchemy import Enum, DateTime, Boolean, BigInteger, UniqueConstraint, Index, func
+from sqlalchemy.orm import Mapped, mapped_column, relationship
+from sqlalchemy import Enum, DateTime, Boolean, BigInteger, UniqueConstraint, Index, func, ForeignKey
 from datetime import datetime
 from app.models.base import Base
 from app.models.enums import GroupRole
+from typing import TYPE_CHECKING
+
+
+if TYPE_CHECKING:
+    from app.models.chatgroup import ChatGroup
+    from app.models.user import User
 
 
 class ChatGroupMember(Base):
@@ -13,11 +19,17 @@ class ChatGroupMember(Base):
         autoincrement=True
     )
     group_id: Mapped[int] = mapped_column(  # 群id
+        ForeignKey("chat_group.id"),
         nullable=False
     )
+    group: Mapped["ChatGroup"] = relationship(foreign_keys=[group_id],
+                                              back_populates="member")  # type: ignore
     user_id: Mapped[int] = mapped_column(  # 成员user.id
+        ForeignKey("user.id"),
         nullable=False
     )
+    user: Mapped["User"] = relationship(foreign_keys=[user_id],
+                                        back_populates="chat_member")  # type: ignore
     role: Mapped[GroupRole] = mapped_column(  # 群内角色
         Enum(GroupRole),
         nullable=False,
@@ -40,6 +52,11 @@ class ChatGroupMember(Base):
         DateTime(),
         nullable=False,
         default=func.now()
+    )
+    is_delete: Mapped[bool] = mapped_column(
+        Boolean(),
+        nullable=False,
+        default=False
     )
 
     __table_args__ = (
