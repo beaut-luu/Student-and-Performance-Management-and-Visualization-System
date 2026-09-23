@@ -1,5 +1,5 @@
 from sqlalchemy.orm import Mapped, mapped_column, relationship
-from sqlalchemy import String, Enum, JSON, DateTime, Index, Boolean, ForeignKey
+from sqlalchemy import String, Enum, JSON, DateTime, Index, Boolean, ForeignKey, BIGINT
 from datetime import datetime
 from app.models.base import Base
 from app.models.enums import GroupJoinMode, GroupStatus
@@ -40,6 +40,7 @@ class ChatGroup(Base):
         index=True
     )
     owner_stu_num: Mapped[int] = mapped_column(  # 群主user.stu_number
+        BIGINT(),
         ForeignKey("user.stu_number"),
         nullable=False
     )

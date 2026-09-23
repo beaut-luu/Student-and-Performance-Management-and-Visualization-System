@@ -1,6 +1,6 @@
 from app.models.base import Base
 from sqlalchemy.orm import Mapped, mapped_column, relationship
-from sqlalchemy import String, ForeignKey, Boolean
+from sqlalchemy import String, ForeignKey, Boolean, BIGINT
 from typing import TYPE_CHECKING
 
 
@@ -38,6 +38,7 @@ class Organization(Base):
         default=False
     )
     owner_stu_num: Mapped[int] = mapped_column(
+        BIGINT(),
         ForeignKey("user.stu_number"),
         nullable=False
     )

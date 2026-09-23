@@ -1,6 +1,6 @@
 from app.models.base import Base
 from sqlalchemy.orm import Mapped, mapped_column, relationship
-from sqlalchemy import DateTime, Boolean, JSON, Enum, ForeignKey, UniqueConstraint
+from sqlalchemy import DateTime, Boolean, JSON, Enum, ForeignKey, UniqueConstraint, BIGINT
 from datetime import datetime
 from app.models.enums import ActivityRegistrationStatus
 from typing import TYPE_CHECKING
@@ -27,6 +27,7 @@ class ActivityRegistration(Base):
                                                 lazy="raise",
                                                 back_populates="act_register")
     register_stu_num: Mapped[int] = mapped_column(  # 报名人学号
+        BIGINT(),
         ForeignKey("user.stu_number"),
         nullable=False
     )
@@ -51,6 +52,7 @@ class ActivityRegistration(Base):
         nullable=True
     )
     review_stu_num: Mapped[int | None] = mapped_column(  # 审核人学号
+        BIGINT(),
         ForeignKey("user.stu_number"),
         nullable=True
     )

@@ -1,6 +1,6 @@
 from app.models.base import Base
 from sqlalchemy.orm import Mapped, mapped_column, relationship
-from sqlalchemy import String, Text, DateTime, Boolean, JSON, Enum, Index, ForeignKey
+from sqlalchemy import String, Text, DateTime, Boolean, JSON, Enum, Index, ForeignKey, BIGINT
 from datetime import datetime
 from app.models.enums import ActivityStatus
 from typing import TYPE_CHECKING
@@ -29,6 +29,7 @@ class Activity(Base):
                                                lazy="raise",
                                                back_populates="activity")  # type: ignore
     creator_stu_num: Mapped[int] = mapped_column(  # 实际操作者
+        BIGINT(),
         ForeignKey("user.stu_number"),
         nullable=False,
         index=True

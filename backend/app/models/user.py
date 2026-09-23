@@ -1,5 +1,5 @@
 # User 模型：映射 db_user 表
-from sqlalchemy import String, Enum, Boolean
+from sqlalchemy import String, Enum, Boolean, BIGINT
 from app.models.enums import Jurisdiction
 from app.models.base import Base
 from sqlalchemy.orm import Mapped, mapped_column, relationship
@@ -33,6 +33,7 @@ class User(Base):
         nullable=False
     )
     stu_number: Mapped[int] = mapped_column(
+        BIGINT(),
         unique=True,
         nullable=False
     )

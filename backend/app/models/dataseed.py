@@ -13,7 +13,7 @@ class DataSeed:
         if await self.urepo.select_one_by_username("admin"):
             return
         if not await self.urepo.insert_user("admin", trans_hash('123456'),
-                                            None, "123456789XXX", "admin"):
+                                            None, 123456789, "admin"):
             raise BizException('data seed插入失败')
         if not await self.urepo.update_jurisdiction("admin", "admin"):
             raise BizException('data seed权限初始化失败')

@@ -1,5 +1,5 @@
 from sqlalchemy.orm import Mapped, mapped_column, relationship
-from sqlalchemy import UniqueConstraint, Enum, ForeignKey, Boolean
+from sqlalchemy import UniqueConstraint, Enum, ForeignKey, Boolean, BIGINT
 from app.models.base import Base
 from app.models.enums import OrganizationRole
 from typing import TYPE_CHECKING
@@ -24,6 +24,7 @@ class OrgMember(Base):
                                                lazy="raise",
                                                back_populates="member")
     member_stu_num: Mapped[int] = mapped_column(
+        BIGINT(),
         ForeignKey("user.stu_number"),
         nullable=False,
         index=True

@@ -6,7 +6,7 @@ from app.core.security import trans_hash, verify_hash, create_access_token
 
 
 async def register(username: str, password: str,
-                   email: str | None, stu_number: str,
+                   email: str | None, stu_number: int,
                    name: str,
                    urepo: UserRepository) -> bool:
     if await duplicate_checking_username(username, urepo):
@@ -45,7 +45,7 @@ async def duplicate_checking_email(email: str | None, urepo: UserRepository) -> 
     return False
 
 
-async def duplicate_checking_stu_num(stu_num: str, urepo: UserRepository) -> bool:
+async def duplicate_checking_stu_num(stu_num: int, urepo: UserRepository) -> bool:
     res = await urepo.select_one_by_stu_num(stu_num)
     if res is not None:
         return True

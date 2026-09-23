@@ -1,5 +1,5 @@
 from sqlalchemy.orm import Mapped, mapped_column, relationship
-from sqlalchemy import Enum, DateTime, Boolean, BigInteger, UniqueConstraint, Index, func, ForeignKey
+from sqlalchemy import Enum, DateTime, Boolean, BigInteger, UniqueConstraint, Index, func, ForeignKey, BIGINT
 from datetime import datetime
 from app.models.base import Base
 from app.models.enums import GroupRole
@@ -26,6 +26,7 @@ class ChatGroupMember(Base):
                                               lazy="raise",
                                               back_populates="member")  # type: ignore
     user_stu_num: Mapped[int] = mapped_column(  # 成员user.stu_number
+        BIGINT(),
         ForeignKey("user.stu_number"),
         nullable=False
     )

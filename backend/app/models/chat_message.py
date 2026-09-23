@@ -1,6 +1,6 @@
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from sqlalchemy import (String, Text, Enum, DateTime, BigInteger, UniqueConstraint,
-                        Index, desc, func, Boolean, ForeignKey)
+                        Index, desc, func, Boolean, ForeignKey, BIGINT)
 from datetime import datetime
 from app.models.base import Base
 from app.models.enums import ChatMessageType, ChatMessageStatus
@@ -28,6 +28,7 @@ class ChatMessage(Base):
                                               lazy="raise",
                                               back_populates="message")  # type: ignore
     sender_stu_num: Mapped[int] = mapped_column(  # 发送者user.stu_number
+        BIGINT(),
         ForeignKey("user.stu_number"),
         nullable=False
     )
