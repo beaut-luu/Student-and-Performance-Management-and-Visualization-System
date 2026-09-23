@@ -7,9 +7,20 @@ import { changeUsername, changePassword, changeJurisdiction } from '@/api/user'
 const router = useRouter()
 const auth = useAuthStore()
 
+// 权限取值与后端 Jurisdiction 枚举保持一致
+const JURISDICTIONS = [
+  { value: 'admin', label: '管理员' },
+  { value: 'user', label: '普通用户' },
+  { value: 'student', label: '学生' },
+  { value: 'org', label: '组织' },
+]
+
 const loading = ref(true)
 const error = ref('')
-const isAdmin = computed(() => auth.user?.jurisdiction === 1)
+const isAdmin = computed(() => auth.user?.jurisdiction === 'admin')
+const roleLabel = computed(
+  () => JURISDICTIONS.find((item) => item.value === auth.user?.jurisdiction)?.label || '未知',
+)
 
 const unameForm = ref({ newName: '' })
 const unameMsg = ref('')
@@ -18,8 +29,9 @@ const pwdForm = ref({ oldPwd: '', newPwd: '' })
 const pwdMsg = ref('')
 const pwdOk = ref(false)
 
-const jurForm = ref({ targetUsername: '', jur: 0, adminSecret: '' })
+const jurForm = ref({ targetUsername: '', jur: 'user' })
 const jurMsg = ref('')
+const jurOk = ref(false)
 
 onMounted(async () => {
   try {
@@ -38,8 +50,13 @@ function logout() {
 
 async function onChangeUsername() {
   unameMsg.value = ''
+  if (!unameForm.value.newName) {
+    unameMsg.value = '请输入新用户名'
+    return
+  }
   try {
     await changeUsername(unameForm.value.newName)
+    // 改名后旧 token 里的用户名已失效，需要重新登录
     auth.logout()
     router.push({ name: 'login', query: { msg: '用户名修改成功，请使用新用户名重新登录' } })
   } catch (e) {
@@ -50,6 +67,10 @@ async function onChangeUsername() {
 async function onChangePassword() {
   pwdMsg.value = ''
   pwdOk.value = false
+  if (!pwdForm.value.oldPwd || pwdForm.value.newPwd.length < 6) {
+    pwdMsg.value = '请输入原密码，新密码至少6位'
+    return
+  }
   try {
     await changePassword(pwdForm.value.oldPwd, pwdForm.value.newPwd)
     pwdOk.value = true
@@ -62,12 +83,17 @@ async function onChangePassword() {
 
 async function onChangeJurisdiction() {
   jurMsg.value = ''
+  jurOk.value = false
+  if (!jurForm.value.targetUsername) {
+    jurMsg.value = '请输入目标用户名'
+    return
+  }
   try {
     await changeJurisdiction({
       target_username: jurForm.value.targetUsername,
-      jur: Number(jurForm.value.jur),
-      admin_secret: jurForm.value.adminSecret || null,
+      jur: jurForm.value.jur,
     })
+    jurOk.value = true
     jurMsg.value = '权限修改成功'
   } catch (e) {
     jurMsg.value = e.message
@@ -81,7 +107,7 @@ async function onChangeJurisdiction() {
       <span class="brand">学生管理系统</span>
       <span v-if="auth.user" class="who">
         {{ auth.user.username }}
-        <em>{{ isAdmin ? '管理员' : '普通用户' }}</em>
+        <em>{{ roleLabel }}</em>
       </span>
       <button class="logout" @click="logout">退出登录</button>
     </header>
@@ -99,6 +125,7 @@ async function onChangeJurisdiction() {
           </label>
           <button @click="onChangeUsername">保存</button>
           <p v-if="unameMsg" class="error">{{ unameMsg }}</p>
+          <p class="hint">修改成功后需使用新用户名重新登录</p>
         </section>
 
         <section class="card">
@@ -124,16 +151,13 @@ async function onChangeJurisdiction() {
           <label>
             权限
             <select v-model="jurForm.jur">
-              <option :value="0">普通用户</option>
-              <option :value="1">管理员</option>
+              <option v-for="item in JURISDICTIONS" :key="item.value" :value="item.value">
+                {{ item.label }}
+              </option>
             </select>
           </label>
-          <label>
-            超级密钥（可选）
-            <input v-model="jurForm.adminSecret" type="text" placeholder="非管理员时填写" />
-          </label>
           <button @click="onChangeJurisdiction">保存</button>
-          <p v-if="jurMsg" class="success">{{ jurMsg }}</p>
+          <p v-if="jurMsg" :class="jurOk ? 'success' : 'error'">{{ jurMsg }}</p>
         </section>
       </div>
     </main>
@@ -162,4 +186,5 @@ async function onChangeJurisdiction() {
   max-width: 1000px;
 }
 .grid .card { width: auto; }
+.hint { font-size: 12px; color: #999; margin: 0; }
 </style>

@@ -5,7 +5,7 @@ from typing import Annotated
 
 
 def empty_str_to_none(val: str):
-    if val.strip() == '':
+    if val == '':
         return None
     return val
 
@@ -17,7 +17,7 @@ class RegisterIn(BaseModel):
     username: str = Field(..., min_length=1, max_length=64, description='昵称最少一个字符')
     name: str = Field(..., min_length=1, max_length=25, description='请输入真实姓名,仅用于验证身份')
     password: str = Field(..., min_length=6, max_length=128, description='密码最少6位')
-    stu_number: int = Field(..., le=1000000000000, me=99999999999,  description='请输入12位学号,仅用于验证身份')
+    stu_number: int = Field(..., le=1000000000000, ge=99999999999,  description='请输入12位学号,仅用于验证身份')
     email: EmptyToNone = Field(default=None, description="请输入正确的邮箱")
 
 

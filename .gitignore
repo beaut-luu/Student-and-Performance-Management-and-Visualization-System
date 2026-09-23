@@ -39,6 +39,6 @@ Thumbs.db
 .idea/
 .vscode/
 test.py
-test.sql
+delete.sql
 today.txt
 error.txt
