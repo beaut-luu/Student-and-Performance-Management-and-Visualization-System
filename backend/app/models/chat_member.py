@@ -23,12 +23,14 @@ class ChatGroupMember(Base):
         nullable=False
     )
     group: Mapped["ChatGroup"] = relationship(foreign_keys=[group_id],
+                                              lazy="raise",
                                               back_populates="member")  # type: ignore
-    user_id: Mapped[int] = mapped_column(  # 成员user.id
-        ForeignKey("user.id"),
+    user_stu_num: Mapped[int] = mapped_column(  # 成员user.stu_number
+        ForeignKey("user.stu_number"),
         nullable=False
     )
-    user: Mapped["User"] = relationship(foreign_keys=[user_id],
+    user: Mapped["User"] = relationship(foreign_keys=[user_stu_num],
+                                        lazy="raise",
                                         back_populates="chat_member")  # type: ignore
     role: Mapped[GroupRole] = mapped_column(  # 群内角色
         Enum(GroupRole),
@@ -60,6 +62,6 @@ class ChatGroupMember(Base):
     )
 
     __table_args__ = (
-        UniqueConstraint('group_id', 'user_id', name='uq_group_member'),
-        Index('idx_group_member_user_pinned', 'user_id', 'is_pinned')
+        UniqueConstraint('group_id', 'user_stu_num', name='uq_group_member'),
+        Index('idx_group_member_user_pinned', 'user_stu_num', 'is_pinned')
     )

@@ -16,17 +16,18 @@ class BaseRepository(Generic[ModelT]):
         self.model = model
         self.db = db
 
-    async def insert_into(self, orm_object: ModelT) -> None:
+    async def insert_into(self, orm_object: ModelT) -> ModelT:
         self.db.add(orm_object)
-        await self.db.commit()
+        await self.db.flush()
+        return orm_object
 
     async def delete_one(self, orm_object: ModelT) -> None:
         await self.db.delete(orm_object)
-        await self.db.commit()
+        await self.db.flush()
 
     async def update_one(self, db_row_id: int, **values) -> None:
         await self.db.execute(update(self.model).where(self.model.id == db_row_id).values(**values))
-        await self.db.commit()
+        await self.db.flush()
 
     async def select_all(self) -> Sequence[ModelT]:
         res = await self.db.execute(select(self.model))

@@ -25,12 +25,14 @@ class ChatMessage(Base):
         nullable=False
     )
     group: Mapped["ChatGroup"] = relationship(foreign_keys=[group_id],
+                                              lazy="raise",
                                               back_populates="message")  # type: ignore
-    sender_id: Mapped[int] = mapped_column(  # 发送者user.id
-        ForeignKey("user.id"),
+    sender_stu_num: Mapped[int] = mapped_column(  # 发送者user.stu_number
+        ForeignKey("user.stu_number"),
         nullable=False
     )
-    sender: Mapped["User"] = relationship(foreign_keys=[sender_id],
+    sender: Mapped["User"] = relationship(foreign_keys=[sender_stu_num],
+                                          lazy="raise",
                                           back_populates="chat_message")  # type: ignore
     type: Mapped[ChatMessageType] = mapped_column(  # 消息类型
         Enum(ChatMessageType),
@@ -46,10 +48,13 @@ class ChatMessage(Base):
         ForeignKey("chat_message.id"),
         nullable=True
     )
+    # 自引用关系不加级联：删除一条消息不应连带删除它的所有回复
     reply_to: Mapped["ChatMessage | None"] = relationship(foreign_keys=[reply_to_msg_id],
                                                           remote_side=[id],
+                                                          lazy="raise",
                                                           back_populates="replies")
     replies: Mapped[list["ChatMessage"]] = relationship(foreign_keys=[reply_to_msg_id],
+                                                        lazy="raise",
                                                         back_populates="reply_to")
     client_msg_id: Mapped[str] = mapped_column(  # 前端生成,幂等去重
         String(64),
@@ -72,6 +77,6 @@ class ChatMessage(Base):
     )
 
     __table_args__ = (
-        UniqueConstraint('sender_id', 'client_msg_id', name='uq_message_client_id'),
+        UniqueConstraint('sender_stu_num', 'client_msg_id', name='uq_message_client_id'),
         Index('idx_chat_message_group_id', 'group_id', desc('id'))
     )

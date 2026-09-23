@@ -1,4 +1,3 @@
-# Jurisdiction(权限枚举,迁移自 state.py;JWT 方案下舍弃 State)
 from enum import Enum
 
 
@@ -23,6 +22,7 @@ class GroupRole(Enum):
 
 class ActivityStatus(Enum):
     draft = 'draft'  # 草稿
+    pending = 'pending'  # 待审核
     published = 'published'  # 公示期
     cancelled = 'cancelled'  # 已取消
     finished = 'finished'  # 已完成

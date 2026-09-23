@@ -1,12 +1,9 @@
-# 验旧密改密 / 改名 / 改权限(含 ADMIN_SECRET 校验)
 from app.core.exceptions import OldPasswordError, SameOldNewPasswordError, UsernameDuplicatedError, \
     PermissionDeniedError, UserNotFoundError
 from app.core.security import verify_hash, trans_hash
 from app.models.user import User
 from app.repositories.user import UserRepository
 from app.services.auth import duplicate_checking_username
-from typing import Optional
-from app.core.config import settings
 from app.models.enums import Jurisdiction
 
 

@@ -39,11 +39,12 @@ class ChatGroup(Base):
         nullable=False,
         index=True
     )
-    owner_id: Mapped[int] = mapped_column(  # 群主user.id
-        ForeignKey("user.id"),
+    owner_stu_num: Mapped[int] = mapped_column(  # 群主user.stu_number
+        ForeignKey("user.stu_number"),
         nullable=False
     )
-    owner: Mapped["User"] = relationship(foreign_keys=[owner_id],
+    owner: Mapped["User"] = relationship(foreign_keys=[owner_stu_num],
+                                         lazy="raise",
                                          back_populates="chat_owner")  # type: ignore
     tags: Mapped[list | None] = mapped_column(  # 标签
         JSON(),
@@ -87,10 +88,15 @@ class ChatGroup(Base):
     )
 
     __table_args__ = (
-        Index('idx_chat_group_owner_status', 'owner_id', 'status'),
+        Index('idx_chat_group_owner_status', 'owner_stu_num', 'status'),
         Index('idx_chat_group_cleanup', 'status', 'last_active_time')
     )
+    # 群解散 → 连带删除成员关系与聊天记录
     member: Mapped[list["ChatGroupMember"]] = relationship(foreign_keys="[ChatGroupMember.group_id]",
+                                                           lazy="raise",
+                                                           cascade="all, delete-orphan",
                                                            back_populates="group")
     message: Mapped[list["ChatMessage"]] = relationship(foreign_keys="[ChatMessage.group_id]",
+                                                        lazy="raise",
+                                                        cascade="all, delete-orphan",
                                                         back_populates="group")

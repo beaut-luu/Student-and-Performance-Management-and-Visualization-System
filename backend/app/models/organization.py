@@ -6,7 +6,7 @@ from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     from app.models.user import User
-    from app.models.activities import Activity
+    from app.models.activity import Activity
     from app.models.org_member import OrgMember
 
 
@@ -37,13 +37,19 @@ class Organization(Base):
         nullable=False,
         default=False
     )
-    owner_id: Mapped[int] = mapped_column(
+    owner_stu_num: Mapped[int] = mapped_column(
         ForeignKey("user.stu_number"),
         nullable=False
     )
-    owner: Mapped["User"] = relationship(foreign_keys=[owner_id],
+    owner: Mapped["User"] = relationship(foreign_keys=[owner_stu_num],
+                                         lazy="raise",
                                          back_populates="org_owner")  # type: ignore
+    # 组织解散 → 连带删除其名下活动与成员关系(活动离开组织无独立意义)
     activity: Mapped[list["Activity"]] = relationship(foreign_keys="[Activity.org_id]",
+                                                      lazy="raise",
+                                                      cascade="all, delete-orphan",
                                                       back_populates="org")  # type: ignore
     member: Mapped[list["OrgMember"]] = relationship(foreign_keys="[OrgMember.org_id]",
+                                                     lazy="raise",
+                                                     cascade="all, delete-orphan",
                                                      back_populates="org")

@@ -5,5 +5,6 @@ from app.models import (
     chatgroup,
     chat_member,
     chat_message,
-    activities
+    activity,
+    activity_register
 )  # noqa: F401

@@ -21,13 +21,15 @@ class OrgMember(Base):
         nullable=False
     )
     org: Mapped["Organization"] = relationship(foreign_keys=[org_id],
+                                               lazy="raise",
                                                back_populates="member")
-    member_id: Mapped[int] = mapped_column(
+    member_stu_num: Mapped[int] = mapped_column(
         ForeignKey("user.stu_number"),
         nullable=False,
         index=True
     )
-    member: Mapped["User"] = relationship(foreign_keys=[member_id],
+    member: Mapped["User"] = relationship(foreign_keys=[member_stu_num],
+                                          lazy="raise",
                                           back_populates="org_member")
     role: Mapped[OrganizationRole] = mapped_column(
         Enum(OrganizationRole),
@@ -40,5 +42,5 @@ class OrgMember(Base):
         default=False
     )
     __table_args__ = (
-        UniqueConstraint("org_id", "member_id", name='uq_org_member'),
+        UniqueConstraint("org_id", "member_stu_num", name='uq_org_member'),
     )

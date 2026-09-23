@@ -1,15 +1,15 @@
 from app.models.base import Base
 from sqlalchemy.orm import Mapped, mapped_column, relationship
-from sqlalchemy import String, Text, DateTime, Boolean, JSON, Enum, Index, ForeignKey, UniqueConstraint
+from sqlalchemy import String, Text, DateTime, Boolean, JSON, Enum, Index, ForeignKey
 from datetime import datetime
 from app.models.enums import ActivityStatus
-from app.models.enums import ActivityRegistrationStatus
 from typing import TYPE_CHECKING
 
 
 if TYPE_CHECKING:
     from app.models.organization import Organization
     from app.models.user import User
+    from app.models.activity_register import ActivityRegistration
 
 
 class Activity(Base):
@@ -20,19 +20,21 @@ class Activity(Base):
         primary_key=True,
         autoincrement=True
     )
-    org_id: Mapped[int | None] = mapped_column(  # 发布方
+    org_id: Mapped[int] = mapped_column(  # 发布方
         ForeignKey("organizations.id"),
-        nullable=True,
-        index=True
-    )
-    org: Mapped["Organization"] = relationship(foreign_keys=[org_id],
-                                               back_populates="activity")  # type: ignore
-    creator_id: Mapped[int] = mapped_column(  # 实际操作者
-        ForeignKey("user.id"),
         nullable=False,
         index=True
     )
-    creator: Mapped["User"] = relationship(foreign_keys=[creator_id],
+    org: Mapped["Organization"] = relationship(foreign_keys=[org_id],
+                                               lazy="raise",
+                                               back_populates="activity")  # type: ignore
+    creator_stu_num: Mapped[int] = mapped_column(  # 实际操作者
+        ForeignKey("user.stu_number"),
+        nullable=False,
+        index=True
+    )
+    creator: Mapped["User"] = relationship(foreign_keys=[creator_stu_num],
+                                           lazy="raise",
                                            back_populates="create_activities")  # type: ignore
 
     # 活动介绍
@@ -97,7 +99,7 @@ class Activity(Base):
     status: Mapped[ActivityStatus] = mapped_column(  # 活动状态
         Enum(ActivityStatus),
         nullable=False,
-        default=ActivityStatus.published
+        default=ActivityStatus.draft
     )
 
     view_count: Mapped[int] = mapped_column(  # 浏览量
@@ -118,63 +120,8 @@ class Activity(Base):
         Index('idx_activity_register_time', 'register_start', 'register_deadline'),
         Index('idx_activity_time', 'start_time', 'end_time')
     )
+    # 活动删除 → 连带删除其报名记录(报名离开活动无独立意义)
     act_register: Mapped[list["ActivityRegistration"]] = relationship(foreign_keys="[ActivityRegistration.activity_id]",
+                                                                      lazy="raise",
+                                                                      cascade="all, delete-orphan",
                                                                       back_populates="activity")
-
-
-class ActivityRegistration(Base):
-    __tablename__ = 'activity_registration'
-
-    id: Mapped[int] = mapped_column(  # id
-        primary_key=True,
-        autoincrement=True,
-        index=True
-    )
-    activity_id: Mapped[int] = mapped_column(  # 报名活动id
-        ForeignKey("activity.id"),
-        nullable=False
-    )
-    activity: Mapped["Activity"] = relationship(foreign_keys=[activity_id],
-                                                back_populates="act_register")
-    register_id: Mapped[int] = mapped_column(  # 报名人学号
-        ForeignKey("user.stu_number"),
-        nullable=False
-    )
-    register: Mapped["User"] = relationship(foreign_keys=[register_id],
-                                            back_populates="act_register")
-    status: Mapped[ActivityRegistrationStatus] = mapped_column(  # 报名人状态
-        Enum(ActivityRegistrationStatus),
-        nullable=False,
-        default=ActivityRegistrationStatus.pending
-    )
-    register_data: Mapped[dict] = mapped_column(  # 报名人信息
-        JSON(),
-        nullable=False
-    )
-    apply_time: Mapped[datetime] = mapped_column(  # 申请时间
-        DateTime(),
-        nullable=False
-    )
-    review_time: Mapped[datetime | None] = mapped_column(  # 审核时间
-        DateTime(),
-        nullable=True
-    )
-    review_id: Mapped[int | None] = mapped_column(  # 审核人学号
-        ForeignKey("user.stu_number"),
-        nullable=True
-    )
-    reviewer: Mapped["User"] = relationship(foreign_keys=[review_id],
-                                            back_populates="act_reviewer")
-    checkin_time: Mapped[datetime | None] = mapped_column(  # 签到时间
-        DateTime(),
-        nullable=True
-    )
-    is_delete: Mapped[bool] = mapped_column(
-        Boolean(),
-        nullable=False,
-        default=False
-    )
-
-    __table_args__ = (
-        UniqueConstraint('activity_id', 'register_id', name='uq_act_register'),
-    )

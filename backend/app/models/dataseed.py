@@ -3,7 +3,6 @@ from app.repositories.user import UserRepository
 from app.core.security import trans_hash
 from app.core.exceptions import BizException
 from app.core.deps import get_db
-from app.models.user import User
 
 
 class DataSeed:

@@ -1,4 +1,3 @@
-# async engine + async_sessionmaker + get_db() 依赖（替代手写连接池）
 from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker, AsyncSession
 from app.core.config import settings
 from app.models.base import Base
