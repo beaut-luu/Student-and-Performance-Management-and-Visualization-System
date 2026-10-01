@@ -1,5 +1,5 @@
 from sqlalchemy.orm import Mapped, mapped_column, relationship
-from sqlalchemy import UniqueConstraint, Enum, ForeignKey, Boolean, BIGINT
+from sqlalchemy import UniqueConstraint, Enum, ForeignKey, Boolean, BIGINT, String
 from app.models.base import Base
 from app.models.enums import OrganizationRole
 from typing import TYPE_CHECKING
@@ -15,6 +15,10 @@ class OrgMember(Base):
     id: Mapped[int] = mapped_column(
         primary_key=True,
         autoincrement=True
+    )
+    org_name: Mapped[str] = mapped_column(
+        String(50),
+        nullable=False
     )
     org_id: Mapped[int] = mapped_column(
         ForeignKey("organizations.id"),
@@ -40,7 +44,8 @@ class OrgMember(Base):
     is_delete: Mapped[bool] = mapped_column(
         Boolean(),
         nullable=False,
-        default=False
+        default=False,
+        index=True
     )
     __table_args__ = (
         UniqueConstraint("org_id", "member_stu_num", name='uq_org_member'),

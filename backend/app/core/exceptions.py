@@ -37,5 +37,5 @@ class OldPasswordError(BizException):   # 原密码错 → 400
 
 
 class SameOldNewPasswordError(BizException):
-    def __init__(self, msg='新密码不能与原密码相同'):
+    def __init__(self, msg='新密码不能与原密码相同'):  # 新老密码相同
         super().__init__(msg, status_code=409)

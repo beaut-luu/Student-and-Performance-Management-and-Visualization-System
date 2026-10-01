@@ -22,7 +22,8 @@ class GroupRole(Enum):
 
 class ActivityStatus(Enum):
     draft = 'draft'  # 草稿
-    pending = 'pending'  # 待审核
+    pending_review = 'pending_review'  # 待审核
+    reject = 'reject'  # 已驳回
     published = 'published'  # 公示期
     cancelled = 'cancelled'  # 已取消
     finished = 'finished'  # 已完成

@@ -1,4 +1,6 @@
 from sqlalchemy import select, Row
+from sqlalchemy.orm import selectinload
+
 from app.models.enums import OrganizationRole
 from app.repositories.base import BaseRepository
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -31,6 +33,14 @@ class UserRepository(BaseRepository[User]):
         )
         res = await self.db.execute(stmt)
         return res.all()
+
+    async def select_my_info(self, stu_num: int):
+        stmt = (select(User)
+                .where(User.stu_number == stu_num, User.is_delete.is_(False))
+                .options(selectinload(User.org_member))
+                )
+        res = await self.db.execute(stmt)
+        return res.scalar_one_or_none()
 
     async def delete_by_username(self, username: str) -> bool:
         res = await self.select_one_by_username(username)

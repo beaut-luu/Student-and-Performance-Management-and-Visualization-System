@@ -11,6 +11,25 @@ class UserOut(BaseModel):
     jurisdiction: str = Field(..., description='权限')
 
 
+class OrgMember(BaseModel):
+    model_config = ConfigDict(from_attributes= True )
+    
+    org_name: str
+    role: str
+
+
+class UserInfoOut(BaseModel):
+
+    model_config = ConfigDict(from_attributes=True)
+
+    username: str
+    name: str
+    jurisdiction: str
+    stu_number: int
+    email: str | None
+    org_member: list[OrgMember] | None
+
+
 class ChangePwdIn(BaseModel):
     old_pwd: str = Field(..., min_length=6, max_length=128, description='原密码')
     new_pwd: str = Field(..., min_length=6, max_length=128, description='新密码')

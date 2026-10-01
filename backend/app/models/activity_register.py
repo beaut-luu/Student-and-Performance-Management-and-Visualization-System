@@ -56,9 +56,9 @@ class ActivityRegistration(Base):
         ForeignKey("user.stu_number"),
         nullable=True
     )
-    reviewer: Mapped["User"] = relationship(foreign_keys=[review_stu_num],
+    reviewer: Mapped["User"] = relationship(foreign_keys="[ActivityRegistration.review_stu_num]",
                                             lazy="raise",
-                                            back_populates="act_reviewer")
+                                            back_populates="act_register_reviewer")
     checkin_time: Mapped[datetime | None] = mapped_column(  # 签到时间
         DateTime(),
         nullable=True

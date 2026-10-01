@@ -9,6 +9,7 @@ from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from typing import Optional
 from app.core.exceptions import UserNotLogInError
 from app.repositories.user import UserRepository
+from app.repositories.activity import ActivityRepository
 
 
 # sql操作依赖session
@@ -27,6 +28,10 @@ async def get_db():
 
 def d_urepo(db: AsyncSession = Depends(get_db)) -> UserRepository:
     return UserRepository(db)
+
+
+def d_arepo(db: AsyncSession = Depends(get_db)) -> ActivityRepository:
+    return ActivityRepository(db)
 
 
 bearer = HTTPBearer(auto_error=False)  # 空的时候不报错

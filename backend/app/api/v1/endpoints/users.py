@@ -1,5 +1,3 @@
-# /users/me 及改密改名改权限接口
-# Depends(get_current_user)
 from fastapi import APIRouter, Depends
 from app.core.response import SuccessResponse
 from app.models.user import User
@@ -45,3 +43,10 @@ async def change_jur(body: sch_user.ChangeJurIn,
     if await ser_user.change_jurisdiction(body.jur, body.target_username, user, urepo):
         return SuccessResponse(message='权限修改成功')
     raise BizException('权限修改失败')
+
+
+@router.get('/me/my-info', response_model=SuccessResponse, summary='我的信息')
+async def my_info(urepo: UserRepository = Depends(d_urepo),
+                  user: User = Depends(get_current_user)):
+    res = await ser_user.get_my_info(user, urepo)
+    return SuccessResponse(data=sch_user.UserInfoOut.model_validate(res))

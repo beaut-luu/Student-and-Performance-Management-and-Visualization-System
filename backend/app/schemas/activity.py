@@ -1,5 +1,6 @@
 from datetime import datetime
-from pydantic import BaseModel, Field, model_validator
+from pydantic import BaseModel, Field, model_validator, ConfigDict
+from app.models.enums import ActivityStatus
 
 
 class ActivityIn(BaseModel):
@@ -24,10 +25,22 @@ class ActivityIn(BaseModel):
             raise ValueError("活动报名开始时间不能是过去的时间")
         if self.start_time <= self.register_start:
             raise ValueError("活动开始时间不能在活动报名开始时间之前")
-        if self.end_time >= self.start_time:
+        if self.end_time <= self.start_time:
             raise ValueError("活动开始时间不能在活动结束时间之后")
         if self.register_deadline <= self.end_time:
             raise ValueError("活动报名截止时间不能晚于活动结束时间")
 
         return self
 
+
+class OrgOptionOut(BaseModel):
+    """创建活动页的下拉框数据源：活动承包组织列表"""
+    model_config = ConfigDict(from_attributes=True)
+    org_id: int = Field(..., description="活动承包组织ID")
+    name: str = Field(..., min_length=1, max_length=50, description="活动承包组织名称")
+
+
+class ActivityCreatedOut(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+    id: int = Field(..., description="活动ID")
+    status: ActivityStatus = Field(..., description="活动状态")

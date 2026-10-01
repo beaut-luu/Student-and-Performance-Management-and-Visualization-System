@@ -60,6 +60,9 @@ class User(Base):
     create_activities: Mapped[list["Activity"]] = relationship(foreign_keys="[Activity.creator_stu_num]",
                                                                lazy="raise",
                                                                back_populates="creator")  # type: ignore
+    activity_reviewer: Mapped["Activity"] = relationship(foreign_keys="[Activity.review_stu_num]",
+                                                         lazy="raise",
+                                                         back_populates="reviewer")
     org_owner: Mapped[list["Organization"]] = relationship(foreign_keys="[Organization.owner_stu_num]",
                                                            lazy="raise",
                                                            back_populates="owner")  # type: ignore
@@ -71,9 +74,9 @@ class User(Base):
                                                                       lazy="raise",
                                                                       cascade="all, delete-orphan",
                                                                       back_populates="register")
-    act_reviewer: Mapped[list["ActivityRegistration"]] = relationship(foreign_keys="[ActivityRegistration.review_stu_num]",
-                                                                      lazy="raise",
-                                                                      back_populates="reviewer")
+    act_register_reviewer: Mapped[list["ActivityRegistration"]] = relationship(foreign_keys="[ActivityRegistration.review_stu_num]",
+                                                                               lazy="raise",
+                                                                               back_populates="reviewer")
     chat_owner: Mapped[list["ChatGroup"]] = relationship(foreign_keys="[ChatGroup.owner_stu_num]",
                                                          lazy="raise",
                                                          back_populates="owner")  # type: ignore

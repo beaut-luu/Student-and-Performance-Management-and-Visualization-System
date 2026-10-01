@@ -81,7 +81,7 @@ class Activity(Base):
     capacity: Mapped[int | None] = mapped_column(  # 名额上限
         nullable=True
     )
-    need_approval: Mapped[bool] = mapped_column(  # 是否需要审核
+    need_approval: Mapped[bool] = mapped_column(  # 报名是否需要审核
         Boolean(),
         nullable=False
     )
@@ -111,15 +111,27 @@ class Activity(Base):
         nullable=False,
         default=0
     )
-    is_delete: Mapped[bool] = mapped_column(
+    is_delete: Mapped[bool] = mapped_column(  # 是否被删除
         Boolean(),
         nullable=False,
         default=False
     )
+    review_stu_num: Mapped[int | None] = mapped_column(  # 审核人学号
+        BIGINT(),
+        ForeignKey("user.stu_number"),
+        nullable=True
+    )
+    reviewer: Mapped["User"] = relationship(foreign_keys="[Activity.review_stu_num]",
+                                            lazy="raise",
+                                            back_populates="activity_reviewer")  # type: ignore
+    review_time: Mapped[datetime | None] = mapped_column(  # 审核时间
+        DateTime(),
+        nullable=True
+    )
 
     __table_args__ = (
         Index('idx_activity_register_time', 'register_start', 'register_deadline'),
-        Index('idx_activity_time', 'start_time', 'end_time')
+        Index('idx_activity_time', 'start_time', 'end_time'),
     )
     # 活动删除 → 连带删除其报名记录(报名离开活动无独立意义)
     act_register: Mapped[list["ActivityRegistration"]] = relationship(foreign_keys="[ActivityRegistration.activity_id]",

@@ -19,6 +19,9 @@ class ActivityRepository(BaseRepository[Activity]):
     async def select_by_title(self, title: str) -> Sequence[Activity]:
         return await self.select_many(Activity.title.like(f"%{title}%"))
 
+    async def select_by_org_id(self, org_id: int) -> Sequence[Activity]:
+        return await self.select_many(Activity.org_id == org_id)
+
     async def delete_by_id(self, act_id: int) -> bool:
         res = await self.select_by_act_id(act_id)
         if res is not None:

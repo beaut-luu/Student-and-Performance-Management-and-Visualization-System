@@ -38,3 +38,7 @@ async def change_jurisdiction(new_jur: str,
     if not await duplicate_checking_username(target_username, urepo):
         raise UserNotFoundError('该用户不存在')
     return await urepo.update_jurisdiction(target_username, new_jur)
+
+
+async def get_my_info(user: User, urepo: UserRepository):
+    return await urepo.select_my_info(user.stu_number)
