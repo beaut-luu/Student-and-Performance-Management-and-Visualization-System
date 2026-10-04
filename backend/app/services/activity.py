@@ -29,3 +29,9 @@ async def get_user_org(user: User, urepo: UserRepository) -> list[tuple]:
     for i in org_and_role:
         org_list.append((i[0].name, i[0].id, i[1]))
     return org_list
+
+
+async def get_activities_list(arepo: ActivityRepository, page: int) -> dict:
+    activities = await arepo.get_activities(page)
+    count = await arepo.get_activities_count()
+    return {'activities': activities, 'count': count}

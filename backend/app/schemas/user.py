@@ -12,7 +12,7 @@ class UserOut(BaseModel):
 
 
 class OrgMember(BaseModel):
-    model_config = ConfigDict(from_attributes= True )
+    model_config = ConfigDict(from_attributes=True)
     
     org_name: str
     role: str

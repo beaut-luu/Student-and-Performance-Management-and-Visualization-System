@@ -1,9 +1,12 @@
 from datetime import datetime
-from sqlalchemy import update
+from sqlalchemy import update, select, func
 from app.models.activity import Activity
+from app.models.user import User
+from app.models.organization import Organization
 from app.repositories.base import BaseRepository
 from sqlalchemy.ext.asyncio import AsyncSession
 from typing import Sequence
+from app.models.enums import ActivityStatus
 
 
 class ActivityRepository(BaseRepository[Activity]):
@@ -21,6 +24,37 @@ class ActivityRepository(BaseRepository[Activity]):
 
     async def select_by_org_id(self, org_id: int) -> Sequence[Activity]:
         return await self.select_many(Activity.org_id == org_id)
+
+    async def get_activities(self, page: int):
+        offset = (page - 1) * 20
+        stmt = (select(Activity, User.name.label('creator_name'), Organization.name.label('org_name'))
+                .join(User, Activity.creator_stu_num == User.stu_number)
+                .join(Organization, Activity.org_id == Organization.id)
+                .where(Activity.status == ActivityStatus.published,
+                       Activity.is_delete.is_(False),
+                       Activity.end_time > func.now(),
+                       User.is_delete.is_(False),
+                       Organization.is_delete.is_(False))
+                .order_by(Activity.start_time.desc())
+                .limit(20)
+                .offset(offset)
+                )
+        res = await self.db.execute(stmt)
+        return res.all()
+
+    async def get_activities_count(self):
+        stmt = (select(func.count())
+                .select_from(Activity)
+                .join(User, Activity.creator_stu_num == User.stu_number)
+                .join(Organization, Activity.org_id == Organization.id)
+                .where(Activity.status == ActivityStatus.published,
+                       Activity.is_delete.is_(False),
+                       Activity.end_time > func.now(),
+                       User.is_delete.is_(False),
+                       Organization.is_delete.is_(False))
+                )
+        res = await self.db.execute(stmt)
+        return res.scalar_one()
 
     async def delete_by_id(self, act_id: int) -> bool:
         res = await self.select_by_act_id(act_id)

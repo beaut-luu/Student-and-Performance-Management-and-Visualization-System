@@ -1,10 +1,10 @@
-from fastapi import Depends, APIRouter
+from fastapi import Depends, APIRouter, Query
 from app.models.user import User
 from app.services import activity
 from app.core.deps import d_urepo, d_arepo, get_current_user
 from app.repositories.user import UserRepository
 from app.repositories.activity import ActivityRepository
-from app.schemas.activity import ActivityIn, ActivityCreatedOut, OrgOptionOut
+from app.schemas.activity import ActivityIn, ActivityCreatedOut, OrgOptionOut, ActivitiesListOut, ActivityOut
 from app.core.response import SuccessResponse
 from app.models.enums import ActivityStatus
 
@@ -12,7 +12,7 @@ from app.models.enums import ActivityStatus
 router = APIRouter(prefix='/activity', tags=['活动创建'])
 
 
-@router.get('/my-org', response_model=SuccessResponse, summary='获取当前用户的org_id及org_name,role')
+@router.get('/my-org', response_model=SuccessResponse, summary='获取当前用户的org_id及org_name')
 async def get_org(user: User = Depends(get_current_user),
                   urepo: UserRepository = Depends(d_urepo)):
     org_list = await activity.get_user_org(user, urepo)
@@ -27,3 +27,17 @@ async def create_activity(body: ActivityIn, urepo: UserRepository = Depends(d_ur
                                          **body.model_dump(exclude={'org_id'}))
     return SuccessResponse(message='活动发布成功' if res.status == ActivityStatus.published else '已提交,等待审核',
                            data=ActivityCreatedOut.model_validate(res))
+
+
+@router.get('/activities-list', response_model=SuccessResponse, summary='活动列表')
+async def get_activities(page: int = Query(1, ge=1), arepo: ActivityRepository = Depends(d_arepo)):
+    res = await activity.get_activities_list(arepo, page)
+    items = []
+    for act, creator_name, org_name in res['activities']:
+        item = {
+            'creator_name': creator_name,
+            'org_name': org_name,
+            **{k: v for k, v in act.__dict__.items() if not k.startswith('_')}
+        }
+        items.append(ActivityOut.model_validate(item))
+    return SuccessResponse(data=ActivitiesListOut(activities=items, count=res['count']))
