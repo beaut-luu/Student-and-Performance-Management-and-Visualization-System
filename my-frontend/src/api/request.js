@@ -31,7 +31,10 @@ request.interceptors.response.use(
       // FastAPI/Pydantic 参数校验错误：提取第一个字段的错误信息
       message = data.detail[0].msg || message
     }
-    return Promise.reject(new Error(message))
+    const err = new Error(message)
+    // 保留状态码，便于调用方区分 403（权限不足）等场景
+    err.status = resp?.status
+    return Promise.reject(err)
   },
 )
 

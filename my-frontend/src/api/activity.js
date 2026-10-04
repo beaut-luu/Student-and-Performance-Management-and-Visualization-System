@@ -9,3 +9,8 @@ export function getMyOrg() {
 export function createActivity(data) {
   return request.post('/activity/create', data)
 }
+
+// 活动列表（后端固定每页 20 条）
+export function getActivityList(page = 1) {
+  return request.get('/activity/activities-list', { params: { page } })
+}

@@ -3,7 +3,7 @@ import { ref, computed, onMounted, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 import { useActivityStore } from '@/stores/activity'
-import { changeUsername, changePassword, changeJurisdiction } from '@/api/user'
+import { changeUsername, changePassword, changeJurisdiction, getMyInfo } from '@/api/user'
 import { JURISDICTIONS, jurisdictionLabel } from '@/constants/jurisdiction'
 import UserAvatar from '@/components/UserAvatar.vue'
 
@@ -13,13 +13,21 @@ const auth = useAuthStore()
 const activity = useActivityStore()
 
 const MENU = [
+  { key: 'info', label: '我的信息' },
   { key: 'username', label: '修改用户名' },
   { key: 'password', label: '修改密码' },
   { key: 'jurisdiction', label: '修改权限' },
   { key: 'activities', label: '我的活动' },
 ]
 
-const activeTab = ref('username')
+// 社团角色 → 页面展示的称谓（与后端 OrganizationRole 枚举对应）
+const ORG_ROLE_LABEL = {
+  owner: '会长',
+  manager: '部长',
+  member: '成员',
+}
+
+const activeTab = ref('info')
 const loading = ref(true)
 const error = ref('')
 const isAdmin = computed(() => auth.user?.jurisdiction === 'admin')
@@ -35,18 +43,64 @@ const jurForm = ref({ targetUsername: '', jur: 'user' })
 const jurMsg = ref('')
 const jurOk = ref(false)
 
-// “我的活动”当前只接入“我组织的活动 -> 待审核活动”这一条路径
-const pendingActivities = computed(() =>
-  activity.lastCreated?.status === 'pending_review' ? [activity.lastCreated] : [],
+// 我的信息
+const myInfo = ref(null)
+const infoError = ref('')
+
+// 社团字段只展示文本，如 org_name=学生会 + role=owner → “担任学生会会长”
+const orgTexts = computed(() =>
+  (myInfo.value?.org_member || []).map(
+    (item) => `担任${item.org_name}${ORG_ROLE_LABEL[item.role] || item.role}`,
+  ),
 )
 
-function applyQueryTab() {
-  const tab = route.query.tab
+async function loadMyInfo() {
+  infoError.value = ''
+  try {
+    const res = await getMyInfo()
+    myInfo.value = res?.data || null
+  } catch (e) {
+    infoError.value = e.message
+  }
+}
+
+// “我的活动”下的二级选项：我参与的活动 / 我组织的活动
+const ACTIVITY_SUBS = [
+  { value: 'joined', label: '我参与的活动' },
+  { value: 'organized', label: '我组织的活动' },
+]
+// “我组织的活动”下的三级状态选项，取值对应后端 ActivityStatus
+const STATUS_TABS = [
+  { value: 'published', label: '审核通过' },
+  { value: 'pending_review', label: '待审核' },
+  { value: 'reject', label: '审核未通过' },
+]
+
+const subTab = ref('joined')
+const statusTab = ref('published')
+const statusLabel = computed(
+  () => STATUS_TABS.find((item) => item.value === statusTab.value)?.label || '',
+)
+
+// 列表接口尚未接入，这里只展示本次会话中刚创建的活动
+const organizedActivities = computed(() =>
+  activity.lastCreated?.status === statusTab.value ? [activity.lastCreated] : [],
+)
+
+function applyQuery() {
+  const { tab, sub, status } = route.query
   if (typeof tab === 'string' && MENU.some((item) => item.key === tab)) activeTab.value = tab
+  if (typeof sub === 'string' && ACTIVITY_SUBS.some((item) => item.value === sub)) subTab.value = sub
+  if (typeof status === 'string' && STATUS_TABS.some((item) => item.value === status)) {
+    statusTab.value = status
+  }
 }
 
 onMounted(async () => {
-  applyQueryTab()
+  applyQuery()
+  // 让地址栏始终反映当前选中的功能，保持可分享/可刷新
+  syncQuery()
+  loadMyInfo()
   try {
     await auth.fetchMe()
   } catch (e) {
@@ -56,12 +110,31 @@ onMounted(async () => {
   }
 })
 
-watch(() => route.query.tab, applyQueryTab)
+watch(() => route.query, applyQuery)
+
+function syncQuery() {
+  const query = { tab: activeTab.value }
+  if (activeTab.value === 'activities') {
+    query.sub = subTab.value
+    query.status = statusTab.value
+  }
+  // 同步到地址栏，方便“我的活动”这类深层入口被直接跳转过来
+  router.replace({ name: 'profile', query })
+}
 
 function selectMenu(key) {
   activeTab.value = key
-  // 同步到地址栏，方便“我的活动”这类深层入口被直接跳转过来
-  router.replace({ name: 'profile', query: { ...route.query, tab: key } })
+  syncQuery()
+}
+
+function selectSub(value) {
+  subTab.value = value
+  syncQuery()
+}
+
+function selectStatus(value) {
+  statusTab.value = value
+  syncQuery()
 }
 
 function logout() {
@@ -133,7 +206,10 @@ async function onChangeJurisdiction() {
           <span class="muted">身份 / 权限信息来自 /users/me</span>
         </p>
       </div>
-      <button class="logout" type="button" @click="logout">退出登录</button>
+      <div class="actions">
+        <button class="back" type="button" @click="router.push({ name: 'home' })">返回主页</button>
+        <button class="logout" type="button" @click="logout">退出登录</button>
+      </div>
     </header>
 
     <div class="body">
@@ -201,16 +277,64 @@ async function onChangeJurisdiction() {
             <p v-else class="muted">仅管理员可以修改他人权限</p>
           </div>
 
+          <div v-else-if="activeTab === 'info'" class="info">
+            <h2>我的信息</h2>
+            <p v-if="infoError" class="error">{{ infoError }}</p>
+            <p v-else-if="!myInfo" class="muted">加载中...</p>
+            <dl v-else class="info-list">
+              <div><dt>用户名</dt><dd>{{ myInfo.username }}</dd></div>
+              <div><dt>真实姓名</dt><dd>{{ myInfo.name }}</dd></div>
+              <div><dt>身份</dt><dd>{{ jurisdictionLabel(myInfo.jurisdiction) }}</dd></div>
+              <div><dt>学号</dt><dd>{{ myInfo.stu_number }}</dd></div>
+              <div><dt>邮箱</dt><dd>{{ myInfo.email || '未填写' }}</dd></div>
+              <div>
+                <dt>社团</dt>
+                <dd>
+                  <span v-for="text in orgTexts" :key="text" class="org-line">{{ text }}</span>
+                  <span v-if="!orgTexts.length" class="muted">暂未加入社团</span>
+                </dd>
+              </div>
+            </dl>
+          </div>
+
           <div v-else class="activities">
-            <p class="crumbs">我的活动 <i>›</i> 我组织的活动 <i>›</i> 待审核活动</p>
-            <ul v-if="pendingActivities.length" class="act-list">
-              <li v-for="item in pendingActivities" :key="item.id">
-                <b>{{ item.title }}</b>
-                <span class="muted">{{ item.location }}</span>
-                <em>待审核</em>
-              </li>
-            </ul>
-            <p v-else class="muted">暂无待审核活动</p>
+            <div class="sub-tabs">
+              <button
+                v-for="item in ACTIVITY_SUBS"
+                :key="item.value"
+                type="button"
+                class="sub-tab"
+                :class="{ on: subTab === item.value }"
+                @click="selectSub(item.value)"
+              >
+                {{ item.label }}
+              </button>
+            </div>
+
+            <template v-if="subTab === 'organized'">
+              <div class="status-tabs">
+                <button
+                  v-for="item in STATUS_TABS"
+                  :key="item.value"
+                  type="button"
+                  class="status-tab"
+                  :class="{ on: statusTab === item.value }"
+                  @click="selectStatus(item.value)"
+                >
+                  {{ item.label }}
+                </button>
+              </div>
+              <ul v-if="organizedActivities.length" class="act-list">
+                <li v-for="item in organizedActivities" :key="item.id">
+                  <b>{{ item.title }}</b>
+                  <span class="muted">{{ item.location }}</span>
+                  <em :class="statusTab">{{ statusLabel }}</em>
+                </li>
+              </ul>
+              <p v-else class="muted">暂无{{ statusLabel }}的活动</p>
+            </template>
+
+            <p v-else class="muted">暂无参与的活动</p>
           </div>
         </template>
       </section>
@@ -237,12 +361,13 @@ async function onChangeJurisdiction() {
 .info p { margin: 0; display: flex; align-items: center; gap: 10px; font-size: 13px; }
 .tag { padding: 2px 8px; border-radius: 999px; background: #eef2ff; color: #4a7dff; }
 .muted { color: #999; font-size: 13px; margin: 0; }
-.logout {
-  margin-left: auto;
+.actions { margin-left: auto; display: flex; gap: 10px; }
+.back, .logout {
   padding: 7px 14px;
   font-size: 13px;
   background: #8a94a6;
 }
+.back { background: #eef2ff; color: #4a7dff; }
 
 /* 下部分：约占 6/7，再分左右 */
 .body { flex: 1; display: flex; min-height: 0; }
@@ -275,8 +400,46 @@ async function onChangeJurisdiction() {
 .error { color: #e34d4d; font-size: 13px; margin: 0; }
 .success { color: #22a06b; font-size: 13px; margin: 0; }
 
-.crumbs { margin: 0 0 14px; font-size: 13px; color: #666; }
-.crumbs i { margin: 0 6px; color: #bbb; font-style: normal; }
+/* 我的信息：纯文本展示 */
+.info { display: flex; flex-direction: column; gap: 14px; max-width: 520px; }
+.info h2 { margin: 0; font-size: 16px; }
+.info-list {
+  margin: 0;
+  padding: 4px 18px;
+  background: #fff;
+  border-radius: 10px;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.05);
+}
+.info-list > div { display: flex; gap: 16px; padding: 13px 0; border-bottom: 1px solid #f1f2f6; }
+.info-list > div:last-child { border-bottom: none; }
+.info-list dt { width: 72px; flex: none; color: #999; font-size: 14px; }
+.info-list dd { margin: 0; color: #2c2c2c; font-size: 14px; word-break: break-all; }
+.org-line { display: block; }
+.org-line + .org-line { margin-top: 4px; }
+
+/* 我的活动：二级“我参与/我组织” + 三级审核状态下拉 */
+.sub-tabs { display: flex; gap: 8px; margin-bottom: 16px; border-bottom: 1px solid #eceef3; }
+.sub-tab {
+  padding: 8px 14px;
+  background: transparent;
+  color: #666;
+  font-size: 14px;
+  border-radius: 8px 8px 0 0;
+}
+.sub-tab:hover { background: #f6f8ff; }
+.sub-tab.on { color: #4a7dff; font-weight: 600; box-shadow: inset 0 -2px 0 #4a7dff; }
+
+.status-tabs { display: flex; gap: 8px; margin-bottom: 16px; }
+.status-tab {
+  padding: 6px 14px;
+  background: #f2f3f7;
+  color: #666;
+  font-size: 13px;
+  border-radius: 999px;
+}
+.status-tab:hover { background: #e8ebf5; }
+.status-tab.on { background: #4a7dff; color: #fff; }
+
 .act-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 10px; }
 .act-list li {
   display: flex;
@@ -287,5 +450,8 @@ async function onChangeJurisdiction() {
   border-radius: 10px;
   box-shadow: 0 1px 4px rgba(0, 0, 0, 0.05);
 }
-.act-list em { margin-left: auto; font-style: normal; font-size: 12px; color: #d98a00; }
+.act-list em { margin-left: auto; font-style: normal; font-size: 12px; color: #666; }
+.act-list em.published { color: #22a06b; }
+.act-list em.pending_review { color: #d98a00; }
+.act-list em.reject { color: #e34d4d; }
 </style>

@@ -1,102 +1,65 @@
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
-import { changeUsername, changePassword, changeJurisdiction } from '@/api/user'
+import { useActivityStore } from '@/stores/activity'
+import { jurisdictionLabel } from '@/constants/jurisdiction'
+import UserAvatar from '@/components/UserAvatar.vue'
 
 const router = useRouter()
 const auth = useAuthStore()
-
-// 权限取值与后端 Jurisdiction 枚举保持一致
-const JURISDICTIONS = [
-  { value: 'admin', label: '管理员' },
-  { value: 'user', label: '普通用户' },
-  { value: 'student', label: '学生' },
-  { value: 'org', label: '组织' },
-]
+const activity = useActivityStore()
 
 const loading = ref(true)
-const error = ref('')
-const isAdmin = computed(() => auth.user?.jurisdiction === 'admin')
-const roleLabel = computed(
-  () => JURISDICTIONS.find((item) => item.value === auth.user?.jurisdiction)?.label || '未知',
-)
+const checking = ref(false)
+const notice = ref('')
+const tabNotice = ref('')
 
-const unameForm = ref({ newName: '' })
-const unameMsg = ref('')
-
-const pwdForm = ref({ oldPwd: '', newPwd: '' })
-const pwdMsg = ref('')
-const pwdOk = ref(false)
-
-const jurForm = ref({ targetUsername: '', jur: 'user' })
-const jurMsg = ref('')
-const jurOk = ref(false)
+// 主页上方的功能入口，目前只有“活动”页面已完成
+const NAV_TABS = [
+  { key: 'campus', label: '校园生活' },
+  { key: 'activity', label: '活动' },
+  { key: 'market', label: '跳蚤市场' },
+  { key: 'chat', label: '群聊' },
+]
 
 onMounted(async () => {
   try {
     await auth.fetchMe()
   } catch (e) {
-    error.value = e.message
+    notice.value = e.message
   } finally {
     loading.value = false
   }
 })
 
-function logout() {
-  auth.logout()
-  router.push('/login')
-}
-
-async function onChangeUsername() {
-  unameMsg.value = ''
-  if (!unameForm.value.newName) {
-    unameMsg.value = '请输入新用户名'
+function onTabClick(item) {
+  if (item.key === 'activity') {
+    router.push({ name: 'activityList' })
     return
   }
-  try {
-    await changeUsername(unameForm.value.newName)
-    // 改名后旧 token 里的用户名已失效，需要重新登录
-    auth.logout()
-    router.push({ name: 'login', query: { msg: '用户名修改成功，请使用新用户名重新登录' } })
-  } catch (e) {
-    unameMsg.value = e.message
-  }
+  tabNotice.value = `「${item.label}」页面开发中，敬请期待`
 }
 
-async function onChangePassword() {
-  pwdMsg.value = ''
-  pwdOk.value = false
-  if (!pwdForm.value.oldPwd || pwdForm.value.newPwd.length < 6) {
-    pwdMsg.value = '请输入原密码，新密码至少6位'
-    return
-  }
-  try {
-    await changePassword(pwdForm.value.oldPwd, pwdForm.value.newPwd)
-    pwdOk.value = true
-    pwdMsg.value = '密码修改成功'
-    pwdForm.value = { oldPwd: '', newPwd: '' }
-  } catch (e) {
-    pwdMsg.value = e.message
-  }
+function goProfile() {
+  router.push({ name: 'profile' })
 }
 
-async function onChangeJurisdiction() {
-  jurMsg.value = ''
-  jurOk.value = false
-  if (!jurForm.value.targetUsername) {
-    jurMsg.value = '请输入目标用户名'
-    return
-  }
+async function onCreateActivity() {
+  notice.value = ''
+  checking.value = true
   try {
-    await changeJurisdiction({
-      target_username: jurForm.value.targetUsername,
-      jur: jurForm.value.jur,
-    })
-    jurOk.value = true
-    jurMsg.value = '权限修改成功'
+    // 先拉取当前操作者的社团，拿到 org_id / org_name 后才允许进入创建页
+    const options = await activity.fetchOrgOptions()
+    if (!options.length) {
+      notice.value = '非社团成员无法创建活动'
+      return
+    }
+    router.push({ name: 'activityCreate' })
   } catch (e) {
-    jurMsg.value = e.message
+    notice.value = e.status === 403 ? '非社团成员无法创建活动' : e.message
+  } finally {
+    checking.value = false
   }
 }
 </script>
@@ -105,60 +68,37 @@ async function onChangeJurisdiction() {
   <div class="home">
     <header class="bar">
       <span class="brand">学生管理系统</span>
-      <span v-if="auth.user" class="who">
-        {{ auth.user.username }}
-        <em>{{ roleLabel }}</em>
-      </span>
-      <button class="logout" @click="logout">退出登录</button>
+      <button class="user-chip" type="button" @click="goProfile">
+        <UserAvatar :name="auth.user?.username || ''" :size="36" />
+        <span class="chip-text">
+          <b>{{ auth.user?.username || '未登录' }}</b>
+          <small>{{ jurisdictionLabel(auth.user?.jurisdiction) }}</small>
+        </span>
+      </button>
     </header>
 
-    <main class="content">
-      <p v-if="loading">加载中...</p>
-      <p v-else-if="error" class="error">{{ error }}</p>
+    <nav class="tabs">
+      <button
+        v-for="item in NAV_TABS"
+        :key="item.key"
+        type="button"
+        class="tab"
+        @click="onTabClick(item)"
+      >
+        {{ item.label }}
+      </button>
+    </nav>
+    <p class="tab-notice" :class="{ show: !!tabNotice }">{{ tabNotice }}</p>
 
-      <div v-else class="grid">
-        <section class="card">
-          <h3>修改用户名</h3>
-          <label>
-            新用户名
-            <input v-model.trim="unameForm.newName" type="text" placeholder="请输入新用户名" />
-          </label>
-          <button @click="onChangeUsername">保存</button>
-          <p v-if="unameMsg" class="error">{{ unameMsg }}</p>
-          <p class="hint">修改成功后需使用新用户名重新登录</p>
-        </section>
+    <main class="stage">
+      <p v-if="loading" class="hint">加载中...</p>
 
-        <section class="card">
-          <h3>修改密码</h3>
-          <label>
-            原密码
-            <input v-model="pwdForm.oldPwd" type="password" placeholder="请输入原密码" />
-          </label>
-          <label>
-            新密码（至少6位）
-            <input v-model="pwdForm.newPwd" type="password" placeholder="请输入新密码" />
-          </label>
-          <button @click="onChangePassword">保存</button>
-          <p v-if="pwdMsg" :class="pwdOk ? 'success' : 'error'">{{ pwdMsg }}</p>
-        </section>
-
-        <section v-if="isAdmin" class="card">
-          <h3>修改用户权限</h3>
-          <label>
-            目标用户名
-            <input v-model.trim="jurForm.targetUsername" type="text" placeholder="要修改谁" />
-          </label>
-          <label>
-            权限
-            <select v-model="jurForm.jur">
-              <option v-for="item in JURISDICTIONS" :key="item.value" :value="item.value">
-                {{ item.label }}
-              </option>
-            </select>
-          </label>
-          <button @click="onChangeJurisdiction">保存</button>
-          <p v-if="jurMsg" :class="jurOk ? 'success' : 'error'">{{ jurMsg }}</p>
-        </section>
+      <div v-else class="create-block">
+        <p class="notice" :class="{ show: !!notice }">{{ notice }}</p>
+        <button class="plus" type="button" :disabled="checking" @click="onCreateActivity">
+          {{ checking ? '' : '+' }}
+        </button>
+        <span class="plus-label">创建活动</span>
       </div>
     </main>
   </div>
@@ -169,22 +109,88 @@ async function onChangeJurisdiction() {
 .bar {
   display: flex;
   align-items: center;
-  gap: 16px;
-  padding: 14px 24px;
+  padding: 12px 24px;
   background: #fff;
   box-shadow: 0 1px 6px rgba(0, 0, 0, 0.06);
 }
 .brand { font-weight: 600; }
-.who { margin-left: auto; font-size: 14px; color: #555; }
-.who em { margin-left: 6px; font-style: normal; color: #4a7dff; }
-.logout { padding: 6px 12px; font-size: 13px; background: #8a94a6; }
-.content { padding: 24px; }
-.grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-  gap: 20px;
-  max-width: 1000px;
+.user-chip {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 6px 12px 6px 6px;
+  background: transparent;
+  border-radius: 999px;
+  color: inherit;
+  cursor: pointer;
 }
-.grid .card { width: auto; }
-.hint { font-size: 12px; color: #999; margin: 0; }
+.user-chip:hover { background: #f2f5ff; }
+.chip-text { display: flex; flex-direction: column; align-items: flex-start; line-height: 1.25; }
+.chip-text b { font-size: 14px; color: #2c2c2c; font-weight: 600; }
+.chip-text small { font-size: 12px; color: #4a7dff; }
+
+/* 上方居中的功能入口 */
+.tabs {
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 10px;
+  padding: 22px 24px 0;
+}
+.tab {
+  padding: 9px 22px;
+  background: #fff;
+  color: #4b5468;
+  font-size: 14px;
+  border: 1px solid #e3e6ee;
+  border-radius: 999px;
+}
+.tab:hover { border-color: #4a7dff; color: #4a7dff; }
+.tab-notice {
+  min-height: 18px;
+  margin: 8px 0 0;
+  text-align: center;
+  font-size: 13px;
+  color: #9aa1ae;
+  opacity: 0;
+  transition: opacity 0.2s;
+}
+.tab-notice.show { opacity: 1; }
+
+.stage {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-end;
+  padding: 24px 24px 72px;
+}
+.hint { margin: auto; color: #888; font-size: 14px; }
+
+.create-block { display: flex; flex-direction: column; align-items: center; gap: 10px; }
+.notice {
+  min-height: 20px;
+  margin: 0;
+  font-size: 13px;
+  color: #e34d4d;
+  opacity: 0;
+  transition: opacity 0.2s;
+}
+.notice.show { opacity: 1; }
+.plus {
+  width: 64px;
+  height: 64px;
+  padding: 0;
+  border-radius: 50%;
+  background: #4a7dff;
+  color: #fff;
+  font-size: 34px;
+  line-height: 1;
+  font-weight: 300;
+  box-shadow: 0 6px 16px rgba(74, 125, 255, 0.35);
+}
+.plus:hover:not(:disabled) { background: #3a6cf0; }
+.plus:disabled { opacity: 0.6; }
+.plus-label { font-size: 14px; color: #555; }
 </style>

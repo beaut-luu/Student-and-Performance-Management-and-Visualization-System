@@ -2,6 +2,10 @@ import { createRouter, createWebHistory } from 'vue-router'
 
 const routes = [
   { path: '/', name: 'home', component: () => import('@/views/HomeView.vue'), meta: { requiresAuth: true } },
+  { path: '/profile', name: 'profile', component: () => import('@/views/ProfileView.vue'), meta: { requiresAuth: true } },
+  { path: '/activities', name: 'activityList', component: () => import('@/views/ActivityListView.vue'), meta: { requiresAuth: true } },
+  { path: '/activity/create', name: 'activityCreate', component: () => import('@/views/ActivityCreateView.vue'), meta: { requiresAuth: true } },
+  { path: '/activity/:id', name: 'activityDetail', component: () => import('@/views/ActivityDetailView.vue'), meta: { requiresAuth: true } },
   { path: '/login', name: 'login', component: () => import('@/views/LoginView.vue') },
   { path: '/register', name: 'register', component: () => import('@/views/RegisterView.vue') },
 ]

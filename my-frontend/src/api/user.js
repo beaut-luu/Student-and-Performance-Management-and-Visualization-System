@@ -4,6 +4,11 @@ export function getMe() {
   return request.get('/users/me')
 }
 
+// 我的信息（含所属社团与角色）
+export function getMyInfo() {
+  return request.get('/users/me/my-info')
+}
+
 export function changeUsername(newName) {
   return request.put('/users/me/username', { new_name: newName })
 }

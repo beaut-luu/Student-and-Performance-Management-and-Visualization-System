@@ -83,8 +83,9 @@ function validate() {
   if (new Date(f.end_time) <= new Date(f.start_time)) {
     return '活动结束时间必须晚于活动开始时间'
   }
-  if (new Date(f.register_deadline) <= new Date(f.end_time)) {
-    return '活动报名截止时间必须晚于活动结束时间'
+  // 与后端 ActivityIn.checkin_time 校验保持一致：报名截止时间必须早于活动结束时间
+  if (new Date(f.register_deadline) >= new Date(f.end_time)) {
+    return '活动报名截止时间不能晚于活动结束时间'
   }
   if (f.capacity !== '' && (!Number.isInteger(Number(f.capacity)) || Number(f.capacity) <= 0)) {
     return '报名名额需为正整数，或留空表示不限'
@@ -201,7 +202,7 @@ async function onSubmit() {
         </label>
 
         <h2>时间安排</h2>
-        <p class="hint">时间先后顺序：报名开始 &lt; 活动开始 &lt; 活动结束 &lt; 报名截止</p>
+        <p class="hint">时间要求：报名开始 &lt; 活动开始 &lt; 活动结束，且报名截止时间须早于活动结束时间</p>
         <div class="row">
           <label>
             报名开始时间
