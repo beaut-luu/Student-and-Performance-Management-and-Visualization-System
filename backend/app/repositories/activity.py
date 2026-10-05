@@ -1,5 +1,7 @@
 from datetime import datetime
-from sqlalchemy import update, select, func
+from sqlalchemy import update, select, func, Row
+from sqlalchemy.orm import selectinload
+
 from app.models.activity import Activity
 from app.models.user import User
 from app.models.organization import Organization
@@ -25,7 +27,16 @@ class ActivityRepository(BaseRepository[Activity]):
     async def select_by_org_id(self, org_id: int) -> Sequence[Activity]:
         return await self.select_many(Activity.org_id == org_id)
 
-    async def get_activities(self, page: int):
+    async def get_organization(self, act_id: int) -> Organization | None:
+        stmt = (select(Activity)
+                .where(Activity.id == act_id, Activity.is_delete.is_(False))
+                .options(selectinload(Activity.org.and_(Organization.is_delete.is_(False)))
+                         .selectinload(Organization.owner.and_(User.is_delete.is_(False)))))
+        res = await self.db.execute(stmt)
+        res = res.scalar_one_or_none()
+        return res.org
+
+    async def get_activities(self, page: int) -> Sequence[Row[tuple[Activity, str, str]]]:
         offset = (page - 1) * 20
         stmt = (select(Activity, User.name.label('creator_name'), Organization.name.label('org_name'))
                 .join(User, Activity.creator_stu_num == User.stu_number)
@@ -42,7 +53,7 @@ class ActivityRepository(BaseRepository[Activity]):
         res = await self.db.execute(stmt)
         return res.all()
 
-    async def get_activities_count(self):
+    async def get_activities_count(self) -> int:
         stmt = (select(func.count())
                 .select_from(Activity)
                 .join(User, Activity.creator_stu_num == User.stu_number)

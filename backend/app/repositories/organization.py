@@ -1,4 +1,7 @@
+from sqlalchemy import select
+
 from app.models.organization import Organization
+from app.models.user import User
 from app.repositories.base import BaseRepository
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -9,6 +12,14 @@ class OrganizationRepository(BaseRepository[Organization]):
 
     async def select_by_organization_id(self, org_id: int) -> Organization | None:
         return await self.select_one(Organization.id == org_id)
+
+    async def get_owner_profile(self, org_id: int) -> User | None:
+        stmt = (
+            select(Organization.owner)
+            .where(Organization.is_delete.is_(False), Organization.id == org_id)
+        )
+        res = await self.db.execute(stmt)
+        return res.scalar_one_or_none()
 
     async def update_model(self, org_id: int, **value) -> bool:
         res = await self.select_by_organization_id(org_id)

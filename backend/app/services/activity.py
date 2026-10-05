@@ -1,8 +1,10 @@
 from app.models.activity import Activity
 from app.repositories.activity import ActivityRepository
 from app.models.user import User
+from app.models.organization import Organization
+from app.repositories.organization import OrganizationRepository
 from app.repositories.user import UserRepository
-from app.core.exceptions import PermissionDeniedError
+from app.core.exceptions import PermissionDeniedError, UserNotFoundError
 from app.models.enums import OrganizationRole, ActivityStatus
 
 
@@ -21,7 +23,7 @@ async def create_activity(user: User, arepo: ActivityRepository, urepo: UserRepo
 
 
 # 用户点击 发布活动 按钮进行权限判断同时返回下拉框数据源
-async def get_user_org(user: User, urepo: UserRepository) -> list[tuple]:
+async def get_user_org(user: User, urepo: UserRepository) -> list[tuple[str, str, int]]:
     org_and_role = await urepo.select_my_org_and_role(user.stu_number)
     if not org_and_role:
         raise PermissionDeniedError('非社团成员无权发布活动')
@@ -35,3 +37,11 @@ async def get_activities_list(arepo: ActivityRepository, page: int) -> dict:
     activities = await arepo.get_activities(page)
     count = await arepo.get_activities_count()
     return {'activities': activities, 'count': count}
+
+
+async def get_creator_profile(urepo: UserRepository, stu_num: int) -> User | None:
+    return await urepo.select_my_info(stu_num)
+
+
+async def get_organization(arepo: ActivityRepository, act_id: int) -> Organization:
+    return await arepo.get_organization(act_id)

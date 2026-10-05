@@ -40,5 +40,5 @@ async def change_jurisdiction(new_jur: str,
     return await urepo.update_jurisdiction(target_username, new_jur)
 
 
-async def get_my_info(user: User, urepo: UserRepository):
+async def get_my_info(user: User, urepo: UserRepository) -> User:
     return await urepo.select_my_info(user.stu_number)

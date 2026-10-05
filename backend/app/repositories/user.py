@@ -34,13 +34,13 @@ class UserRepository(BaseRepository[User]):
         res = await self.db.execute(stmt)
         return res.all()
 
-    async def select_my_info(self, stu_num: int):
+    async def select_my_info(self, stu_num: int) -> User:
         stmt = (select(User)
                 .where(User.stu_number == stu_num, User.is_delete.is_(False))
-                .options(selectinload(User.org_member))
+                .options(selectinload(User.org_member.and_(OrgMember.is_delete.is_(False))))
                 )
         res = await self.db.execute(stmt)
-        return res.scalar_one_or_none()
+        return res.scalar_one()
 
     async def delete_by_username(self, username: str) -> bool:
         res = await self.select_one_by_username(username)

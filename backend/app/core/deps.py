@@ -10,6 +10,7 @@ from typing import Optional
 from app.core.exceptions import UserNotLogInError
 from app.repositories.user import UserRepository
 from app.repositories.activity import ActivityRepository
+from app.repositories.organization import OrganizationRepository
 
 
 # sql操作依赖session
@@ -32,6 +33,10 @@ def d_urepo(db: AsyncSession = Depends(get_db)) -> UserRepository:
 
 def d_arepo(db: AsyncSession = Depends(get_db)) -> ActivityRepository:
     return ActivityRepository(db)
+
+
+def d_orepo(db: AsyncSession = Depends(get_db)) -> OrganizationRepository:
+    return OrganizationRepository(db)
 
 
 bearer = HTTPBearer(auto_error=False)  # 空的时候不报错

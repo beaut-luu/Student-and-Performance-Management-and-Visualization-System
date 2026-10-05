@@ -70,3 +70,38 @@ class ActivityOut(BaseModel):
 class ActivitiesListOut(BaseModel):
     activities: list[ActivityOut]
     count: int = Field(..., description='有效活动总数')
+
+
+class OrgMember(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    org_name: str
+    role: str
+
+
+class ActivityUserProfileOut(BaseModel):
+
+    model_config = ConfigDict(from_attributes=True)
+
+    username: str
+    name: str
+    stu_number: int
+    org_member: list[OrgMember] | None
+
+
+class User(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    stu_number: int = Field(..., description='社团会长学号')
+    name: str = Field(..., description='社团会长名字')
+
+
+class ActivityOrgProfileOut(BaseModel):
+
+    model_config = ConfigDict(from_attributes=True)
+
+    name: str = Field(..., description='社团名称')
+    logo: str = Field(..., description='社团头像')
+    description: str = Field(..., description='社团描述')
+    contact: str = Field(..., description='社团联系方式')
+    owner: User | None = Field(default=None, description='社团主席')

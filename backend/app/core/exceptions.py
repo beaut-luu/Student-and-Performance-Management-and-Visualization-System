@@ -26,6 +26,11 @@ class UserNotFoundError(BizException):  # 目标用户不存在 → 404
         super().__init__(msg, status_code=404)
 
 
+class OrganizationNotFoundError(BizException):  # 目标社团不存在 → 404
+    def __init__(self, msg='社团不存在'):
+        super().__init__(msg, status_code=404)
+
+
 class PermissionDeniedError(BizException):  # 权限不足 → 403
     def __init__(self, msg='权限不足'):
         super().__init__(msg, status_code=403)
