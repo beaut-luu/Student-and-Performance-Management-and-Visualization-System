@@ -12,5 +12,15 @@ export function createActivity(data) {
 
 // 活动列表（后端固定每页 20 条）
 export function getActivityList(page = 1) {
-  return request.get('/activity/activities-list', { params: { page } })
+  return request.get('/activity/list', { params: { page } })
+}
+
+// 活动创建者信息主页
+export function getCreatorProfile(stuNum) {
+  return request.get('/activity/creator', { params: { stu_num: stuNum } })
+}
+
+// 活动所属社团信息主页（后端按活动 id 查询）
+export function getOrganizationProfile(actId) {
+  return request.get('/activity/organization', { params: { act_id: actId } })
 }

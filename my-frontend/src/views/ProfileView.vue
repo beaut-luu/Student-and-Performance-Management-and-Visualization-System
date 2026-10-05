@@ -6,6 +6,7 @@ import { useActivityStore } from '@/stores/activity'
 import { changeUsername, changePassword, changeJurisdiction, getMyInfo } from '@/api/user'
 import { JURISDICTIONS, jurisdictionLabel } from '@/constants/jurisdiction'
 import UserAvatar from '@/components/UserAvatar.vue'
+import { formatOrgRole } from '@/constants/organization'
 
 const route = useRoute()
 const router = useRouter()
@@ -19,13 +20,6 @@ const MENU = [
   { key: 'jurisdiction', label: '修改权限' },
   { key: 'activities', label: '我的活动' },
 ]
-
-// 社团角色 → 页面展示的称谓（与后端 OrganizationRole 枚举对应）
-const ORG_ROLE_LABEL = {
-  owner: '会长',
-  manager: '部长',
-  member: '成员',
-}
 
 const activeTab = ref('info')
 const loading = ref(true)
@@ -49,9 +43,7 @@ const infoError = ref('')
 
 // 社团字段只展示文本，如 org_name=学生会 + role=owner → “担任学生会会长”
 const orgTexts = computed(() =>
-  (myInfo.value?.org_member || []).map(
-    (item) => `担任${item.org_name}${ORG_ROLE_LABEL[item.role] || item.role}`,
-  ),
+  (myInfo.value?.org_member || []).map((item) => formatOrgRole(item.org_name, item.role)),
 )
 
 async function loadMyInfo() {

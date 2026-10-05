@@ -6,6 +6,8 @@ const routes = [
   { path: '/activities', name: 'activityList', component: () => import('@/views/ActivityListView.vue'), meta: { requiresAuth: true } },
   { path: '/activity/create', name: 'activityCreate', component: () => import('@/views/ActivityCreateView.vue'), meta: { requiresAuth: true } },
   { path: '/activity/:id', name: 'activityDetail', component: () => import('@/views/ActivityDetailView.vue'), meta: { requiresAuth: true } },
+  { path: '/organization/:actId', name: 'organizationProfile', component: () => import('@/views/OrganizationProfileView.vue'), meta: { requiresAuth: true } },
+  { path: '/user/:stuNum', name: 'userProfile', component: () => import('@/views/UserProfileView.vue'), meta: { requiresAuth: true } },
   { path: '/login', name: 'login', component: () => import('@/views/LoginView.vue') },
   { path: '/register', name: 'register', component: () => import('@/views/RegisterView.vue') },
 ]
