@@ -60,3 +60,8 @@ class ChatMessageType(Enum):
 class ChatMessageStatus(Enum):
     normal = 'normal'  # 正常
     recalled = 'recalled'  # 已撤回
+
+
+class MsgTypeStatus(Enum):
+    all = 'all'  # 全体成员
+    manager = 'manager'  # 仅管理员

@@ -14,6 +14,7 @@ if TYPE_CHECKING:  # 只在类型检查时执行
     from app.models.org_member import OrgMember
     from app.models.chat_member import ChatGroupMember
     from app.models.chat_message import ChatMessage
+    from app.models.message_center import MsgCenter
 
 
 class User(Base):

@@ -1,10 +1,11 @@
 from fastapi import Depends, APIRouter, Query
 from app.core.exceptions import UserNotLogInError, OrganizationNotFoundError, UserNotFoundError
 from app.models.user import User
-from app.services import activity
-from app.core.deps import d_urepo, d_arepo, get_current_user
+from app.services import activity, message_center
+from app.core.deps import d_urepo, d_arepo, get_current_user, m_urepo
 from app.repositories.user import UserRepository
 from app.repositories.activity import ActivityRepository
+from app.repositories.message_center import MsgCenterRepository
 from app.schemas.activity import ActivityIn, ActivityCreatedOut, OrgOptionOut, ActivitiesListOut, ActivityOut, ActivityUserProfileOut, ActivityOrgProfileOut
 from app.core.response import SuccessResponse
 from app.models.enums import ActivityStatus
@@ -23,11 +24,14 @@ async def get_org(user: User = Depends(get_current_user),
 @router.post('/create', response_model=SuccessResponse, summary='创建活动')
 async def create_activity(body: ActivityIn, urepo: UserRepository = Depends(d_urepo),
                           arepo: ActivityRepository = Depends(d_arepo),
-                          user: User = Depends(get_current_user)):
+                          user: User = Depends(get_current_user),
+                          mrepo: MsgCenterRepository = Depends(m_urepo)):
     res = await activity.create_activity(user, arepo, urepo, org_id=body.org_id,
                                          **body.model_dump(exclude={'org_id'}))
-    return SuccessResponse(message='活动发布成功' if res.status == ActivityStatus.published else '已提交,等待审核',
-                           data=ActivityCreatedOut.model_validate(res))
+    message = '活动发布成功' if res.status == ActivityStatus.published else '活动已提交,请耐心等待审核'
+    await message_center.create_msg(mrepo, user.stu_number, message, message)
+    await message_center.create_msg(mrepo, )
+    return SuccessResponse(message=message, data=ActivityCreatedOut.model_validate(res))
 
 
 @router.get('/list', response_model=SuccessResponse, summary='活动列表')

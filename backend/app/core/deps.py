@@ -1,5 +1,3 @@
-# get_current_user / require_operator（依赖注入，替代 _current_user 全局态）
-# 提供项目的Depends依赖项
 from app.core.database import AsyncSessionLocal
 from fastapi import Depends
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -11,6 +9,7 @@ from app.core.exceptions import UserNotLogInError
 from app.repositories.user import UserRepository
 from app.repositories.activity import ActivityRepository
 from app.repositories.organization import OrganizationRepository
+from app.repositories.message_center import MsgCenterRepository
 
 
 # sql操作依赖session
@@ -37,6 +36,10 @@ def d_arepo(db: AsyncSession = Depends(get_db)) -> ActivityRepository:
 
 def d_orepo(db: AsyncSession = Depends(get_db)) -> OrganizationRepository:
     return OrganizationRepository(db)
+
+
+def m_urepo(db: AsyncSession = Depends(get_db)) -> MsgCenterRepository:
+    return MsgCenterRepository(db)
 
 
 bearer = HTTPBearer(auto_error=False)  # 空的时候不报错
